@@ -20,7 +20,7 @@ int main( int argc, char* args[] )
 		SDL_Event e;
 		
 		//Enable text input
-		SDL_StartTextInput();
+		//SDL_StartTextInput();
 
 		//While application is running
 		while( !quit )
@@ -33,24 +33,27 @@ int main( int argc, char* args[] )
 				{
 					quit = true;
 				}
+				else if (e.type == SDL_KEYDOWN) {
+					win.handleKeys( e.key );
+			    }	
 				//Handle keypress with current mouse position
-				else if( e.type == SDL_TEXTINPUT )
+				/*else if( e.type == SDL_TEXTINPUT )
 				{
 					int x = 0, y = 0;
 					SDL_GetMouseState( &x, &y );
 					win.handleKeys( e.text.text[ 0 ], x, y );
-				}
+				}*/
 			}
 
 			//Render quad
-			win.render();
+			(win.getRender()).render();
 			
 			//Update screen
 			SDL_GL_SwapWindow( win.getWindow() );
 		}
 		
 		//Disable text input
-		SDL_StopTextInput();
+		//SDL_StopTextInput();
 	}
 
 	//Free resources and close SDL

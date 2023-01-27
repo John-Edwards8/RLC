@@ -1,10 +1,5 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-using namespace std;
-
 #include "Prototypes.h"
+#include "Render.h"
 
 class Window{
 
@@ -19,15 +14,18 @@ private:
 	//OpenGL context
 	SDL_GLContext gContext;
 
-	//Render flag
-	bool gRenderQuad = true;
-
+	//main renderer
+	Render rend;
 public:
 	Window(){}
-	Window(int width, int height){ setSize(width, height); }
+	Window(int width, int height) : Window() { setSize(width, height); }
 
 	SDL_Window * getWindow() {
 		return gWindow;
+	}
+
+	Render getRender() {
+		return rend;
 	}
 
 	void setSize(int width, int height) {
@@ -89,14 +87,13 @@ public:
 		return success;
 	}
 
-	bool errorCheckerGL(bool success){
+	void errorCheckerGL(bool *success){
 		GLenum error = glGetError();
 		if( error != GL_NO_ERROR )
 		{
 			cout << "Error initializing OpenGL! " << error << endl;
-			success = false;
+			*success = false;
 		}
-		return success;
 	}
 
 	bool initGL()
@@ -108,55 +105,40 @@ public:
 		glLoadIdentity();
 		
 		//Check for error
-		success = errorCheckerGL(success);
+		errorCheckerGL(&success);
 
 		//Initialize Modelview Matrix
 		glMatrixMode( GL_MODELVIEW );
 		glLoadIdentity();
 
-		success = errorCheckerGL(success);
+		errorCheckerGL(&success);
 
 		//Initialize clear color
 		glClearColor( 0.f, 0.f, 0.f, 1.f );
 
-		success = errorCheckerGL(success);
+		errorCheckerGL(&success);
 
 		return success;
 	}
 
-	void handleKeys( unsigned char key, int x, int y )
-	{
+
+	void handleKeys( auto key )	{
 		//Toggle quad
-		if( key == 'q' )
-		{
-			gRenderQuad = !gRenderQuad;
+		switch( key.keysym.scancode ) {
+		case SDL_SCANCODE_Q:
+			rend.setRenderQuad(!rend.getRenderQuad());
+			break;
+		case SDL_SCANCODE_ESCAPE:
+			close();
+			exit(1);
 		}
 	}
 
-	void update()
-	{
+	void update() {
 		//No per frame update needed
 	}
 
-	void render()
-	{
-		//Clear color buffer
-		glClear( GL_COLOR_BUFFER_BIT );
-		
-		//Render quad
-		if( gRenderQuad )
-		{
-			glBegin( GL_QUADS );
-				glVertex2f( -0.5f, -0.5f );
-				glVertex2f( 0.5f, -0.5f );
-				glVertex2f( 0.5f, 0.5f );
-				glVertex2f( -0.5f, 0.5f );
-			glEnd();
-		}
-	}
-
-	void close()
-	{
+	void close() { 
 		//Destroy window	
 		SDL_DestroyWindow( gWindow );
 		gWindow = NULL;
