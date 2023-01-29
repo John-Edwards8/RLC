@@ -18,10 +18,8 @@ private:
 		else {
 			//Create window
 			gWindow = SDL_CreateWindow( "RLC", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-			
 		}
 	}
-
 public:
 	Window(){ initWindow(); }
 
@@ -43,14 +41,12 @@ public:
 	}
 
 	void handleKeys( auto key )	{
-		//Toggle quad
 		switch( key.keysym.scancode ) {
 		case SDL_SCANCODE_ESCAPE:
 			close();
 			exit(1);
 		}
 	}
-
 
 	void close() { 
 		//Destroy window	

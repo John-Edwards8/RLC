@@ -1,10 +1,10 @@
-#include "headers/Grid.h"
+#include "headers/Manager.h"
 
 
-int main( int argc, char* args[] )
-{
-	Grid currentGrid;
-	auto win = currentGrid.getWindow();
+int main( int argc, char* args[] ) {
+
+	Manager* mainMan = new Manager;
+	auto win = mainMan->getWindow();
 
 	if( !win.init() )
 	{
@@ -17,8 +17,6 @@ int main( int argc, char* args[] )
 
 		//Event handler
 		SDL_Event e;
-		
-		currentGrid.render();
 		
 		//While application is running
 		while( !quit )
@@ -35,8 +33,7 @@ int main( int argc, char* args[] )
 					win.handleKeys( e.key );
 			    }	
 			}
-
-			//update window
+			mainMan->renderAll();
 		}
 	}
 
