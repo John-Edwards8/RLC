@@ -3,8 +3,10 @@
 
 int main( int argc, char* args[] ) {
 
-	Manager* mainMan = new Manager;
+	Manager* mainMan = new Manager(1360, 768, 10, 15);
+	//mainMan->setStartValues();
 	auto win = mainMan->getWindow();
+	mainMan->start();
 
 	if( !win.init() )
 	{
@@ -33,7 +35,7 @@ int main( int argc, char* args[] ) {
 					win.handleKeys( e.key );
 			    }	
 			}
-			mainMan->renderAll();
+			// mainMan->renderAll();
 		}
 	}
 

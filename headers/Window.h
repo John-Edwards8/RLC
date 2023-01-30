@@ -3,8 +3,8 @@
 class Window {
 private:
 	//Screen dimension
-	int SCREEN_WIDTH = 1280;
-	int SCREEN_HEIGHT = 720;
+	int SCREEN_WIDTH;
+	int SCREEN_HEIGHT;
 
 	//The window we'll be rendering to
 	SDL_Window* gWindow;
@@ -22,15 +22,29 @@ private:
 	}
 public:
 	Window(){ initWindow(); }
+	Window(int screenWidth, int screenHeight) {setSize(screenWidth, screenHeight); initWindow();}
 
 	SDL_Window * getWindow() {
 		return this->gWindow;
+	}
+
+	Window _getWindow() {
+		return *this;
 	}
 
 	void setSize(int width, int height) {
 		SCREEN_WIDTH = width > 0? width : SCREEN_WIDTH;
 		SCREEN_HEIGHT = height > 0? height : SCREEN_HEIGHT;
 	}
+
+	int getWindowWidth() {
+		return this->SCREEN_WIDTH;
+	}
+
+	int getWindowHeight() {
+		return this->SCREEN_HEIGHT;
+	}
+
 
 	bool init(){
 		bool success = SDL_Init( SDL_INIT_VIDEO ) < 0? false : true;
