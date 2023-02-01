@@ -7,7 +7,6 @@ public:
 	Render(){
 		this->rend = SDL_CreateRenderer( getWindow(), -1, SDL_RENDERER_ACCELERATED );
 	}
-	// Render(int screenWidth, int screenHeight) : Render() {}
 
 	void _render() {
 		SDL_RenderPresent(this->rend);

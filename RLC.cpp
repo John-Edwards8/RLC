@@ -3,8 +3,7 @@
 
 int main( int argc, char* args[] ) {
 
-	Manager* mainMan = new Manager(1360, 768, 10, 15);
-	//mainMan->setStartValues();
+	Manager* mainMan = new Manager(1360, 768, 30, 30);
 	auto win = mainMan->getWindow();
 	mainMan->start();
 
