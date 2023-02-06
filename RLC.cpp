@@ -3,7 +3,7 @@
 
 int main( int argc, char* args[] ) {
 
-	Manager* mainMan = new Manager(1360, 768, 30, 30);
+	Manager* mainMan = new Manager(1360, 768, 30, 5);
 	auto win = mainMan->getWindow();
 	mainMan->start();
 
@@ -16,25 +16,30 @@ int main( int argc, char* args[] ) {
 		//Main loop flag
 		bool quit = false;
 
+		bool start = false;
+		
 		//Event handler
 		SDL_Event e;
-		
+
 		//While application is running
-		while( !quit )
-		{
+		while( !quit ) {
+			if (start) { mainMan->clear(); ((Render*)mainMan)->_render(); }
+
+			if (win.getTik()){
+				mainMan->moveBeam();
+			}
+			
 			//Handle events on queue
-			while( SDL_PollEvent( &e ) != 0 )
-			{
+			while( SDL_PollEvent( &e ) != 0 ) {
 				//User requests quit
-				if( e.type == SDL_QUIT )
-				{
+				if( e.type == SDL_QUIT ) {
 					quit = true;
 				}
 				else if (e.type == SDL_KEYDOWN) {
 					win.handleKeys( e.key );
 			    }	
 			}
-			// mainMan->renderAll();
+			start = true;
 		}
 	}
 

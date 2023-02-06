@@ -9,6 +9,8 @@ private:
 	//The window we'll be rendering to
 	SDL_Window* gWindow;
 
+	bool tik = false;
+
 	void initWindow() {
 		//Initialize SDL
 		if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
@@ -54,8 +56,15 @@ public:
 		return success;
 	}
 
+	bool getTik() {
+		return this->tik;
+	}
+
 	void handleKeys( auto key )	{
 		switch( key.keysym.scancode ) {
+		case SDL_SCANCODE_SPACE:
+			this->tik = true;
+			break;
 		case SDL_SCANCODE_ESCAPE:
 			close();
 			exit(1);

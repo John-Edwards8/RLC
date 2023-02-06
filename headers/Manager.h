@@ -12,18 +12,31 @@ public:
 		Window::_getWindow();
 	}
 
-	void start(){
-		Render::_clear();
-		Grid::render();
-		Beam::render();
-		Render::_render();
+	void start() {
+		Grid::createCoords();
 	}
 
-	void setStartValues(int screenWidth, int screenHeight){
+	void clear() {
+		Render::_clear();
+		Grid::onlyRender();
+	}
+
+	void setStartValues(int screenWidth, int screenHeight) {
 		Grid::setBord(screenWidth, screenHeight);
 		Grid::setCellSize(screenHeight);
 
 		Beam::setValues(Grid::getCellHeight(),Grid::getBord());
+	}
 
+	void moveBeam() {
+		for(int i = 1; i <= (Grid::getCellsInRow()*Grid::getCellsInColumn()); i++) {
+			clear();
+			Beam::move(Grid::getGridCoords(), i, Grid::getCellHeight());
+			Render::_buffered();
+			Render::_render();
+			Render::_unbuffered();
+			Render::_clear();
+			SDL_Delay(50);
+		}
 	}
 };
