@@ -12,7 +12,7 @@ public:
 		Window::_getWindow();
 	}
 
-	void start() {
+	void initGrid() {
 		Grid::createCoords();
 	}
 
@@ -28,15 +28,36 @@ public:
 		Beam::setValues(Grid::getCellHeight(),Grid::getBord());
 	}
 
-	void moveBeam() {
+	void moveBeam(int mvcnt) {
+		int clsInRow = Grid::getCellsInRow();
+		int clsInCol = Grid::getCellsInColumn();
+ 
+		for (int i = 0; i < clsInCol; i++)	{
+			for (int j = 0; j < clsInRow; j++)	{
+				clear();
+				Beam::move(Grid::getGridCoords(), i, j, Grid::getCellHeight());
+				Render::_render();
+				Render::_clear();
+				if (!mvcnt) { SDL_Delay(25); }
+				else { SDL_Delay(250); }
+			}
+		}
+	}
+
+	/*void moveBeam() {
 		for(int i = 1; i <= (Grid::getCellsInRow()*Grid::getCellsInColumn()); i++) {
 			clear();
 			Beam::move(Grid::getGridCoords(), i, Grid::getCellHeight());
-			Render::_buffered();
 			Render::_render();
-			Render::_unbuffered();
 			Render::_clear();
-			SDL_Delay(50);
+			switch ( this->stage ) {
+			case 1:
+				SDL_Delay(300);
+				break;
+			default:
+				SDL_Delay(50);
+			}
 		}
-	}
+		this->stage++;
+	}*/
 };

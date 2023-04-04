@@ -12,11 +12,12 @@ private:
 	int x, y;
 	int bord_x, bord_y;
 
-	GridList coords;
+	comp** coords;
+	//GridList coords;
 public:
 	Grid(){}
 
-	void createCoords(){
+	/*void createCoords(){
 		this->x = 0;
 		this->y = this->bord_y;
 		constr_list(coords);
@@ -25,24 +26,39 @@ public:
 				comp_in(coords, (this->x + this->bord_x + (cellWidth*j)), (this->y+this->bord_y+(cellHeight*i)));
 			}
 		}
+	}*/
 
-	}
-/*
-	void startRender() {
+	void createCoords(){
+		srand(time(NULL));
 		this->x = 0;
 		this->y = this->bord_y;
-		constr_list(coords);
+		coords = new comp*[this->cellsInRow];
+		for (int i = 0; i < this->cellsInRow; i++) {
+			*(coords+i) = new comp[this->cellsInColumn];
+		}
+
+		for (int i = 0; i < this->cellsInColumn; i++) {
+			for (int j = 0; j < this->cellsInRow; j++) {
+				(*(coords+j)+i)->coordX = this->x + this->bord_x + (cellWidth*j);
+				(*(coords+j)+i)->coordY = this->y + this->bord_y + (cellHeight*i);
+				(*(coords+j)+i)->target = rand() % 10000 < 2? true:false;
+			}
+		}
+	}
+
+	void onlyRender() {
 		SDL_SetRenderDrawColor( this->rend, 0x00, 0x00, 0x00, 0xFF );
 		for (int i = 0; i < this->cellsInColumn; i++)	{
 			for (int j = 0; j < this->cellsInRow; j++)	{
-				SDL_Rect outlineRect = { this->x + this->bord_x + (cellWidth*j), this->y+this->bord_y+(cellHeight*i), this->cellWidth, this->cellHeight  };
+				this->x = (*(coords+j)+i)->coordX;
+				this->y = (*(coords+j)+i)->coordY;
+				SDL_Rect outlineRect = { this->x, this->y, this->cellWidth, this->cellHeight  };
 				SDL_RenderDrawRect( this->rend, &outlineRect );
-				comp_in(coords, (this->x + this->bord_x + (cellWidth*j)), (this->y+this->bord_y+(cellHeight*i)));
 			}
 		}
 	}
-*/
-	void onlyRender() {
+
+	/*void onlyRender() {
 		comp* c = coords.head;
 		this->x = c->coordX;
 		this->y = c->coordY;
@@ -57,7 +73,7 @@ public:
 			}
 			this->y = c->coordY;
 		}
-	}
+	}*/
 
 	void setBord(int scrW, int scrH) {
 		this->bord_x = this->cellsInRow <= this->cellsInColumn? (scrW-scrH)/2 : (scrW-scrH)/6;
@@ -86,9 +102,12 @@ public:
 		this->cellsInRow = cellsInRow;
 		this->cellsInColumn = cellsInColumn;
 	}
-	GridList getGridCoords() {
+	comp** getGridCoords() {
 		return this->coords;
 	}
+	/*GridList getGridCoords() {
+		return this->coords;
+	}*/
 
 };
 
@@ -106,19 +125,6 @@ public:
 		this->radius = cellH/4;
 	}
 
-	/*void startRender() {
-		SDL_SetRenderDrawColor( this->rend, 0x00, 0x00, 0xFF, 0xFF);
-	    for (int w = 0; w < this->radius * 2; w++) {
-	        for (int h = 0; h < this->radius * 2; h++) {
-	            int dx = this->radius - w;
-	            int dy = this->radius - h;
-	            if ((dx*dx + dy*dy) <= (this->radius * this->radius)) {
-	                SDL_RenderDrawPoint(this->rend, this->x + dx, this->y + dy);
-	            }
-	        }
-	    }
-	}*/
-
 	void render(int newX, int newY) {
 		SDL_SetRenderDrawColor( this->rend, 0x00, 0x00, 0xFF, 0xFF);
 	    for (int w = 0; w < this->radius * 2; w++) {
@@ -132,11 +138,30 @@ public:
 	    }
 	}
 	
-	void move(Render::GridList l, int curIndex, int cellH) {
+	void move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH) {
+		auto c = (*(l + curIndexRow) + curIndexColumn);
+
+		if(c->targetChecker == 1){ return; }
+
+		c->targetChecker += c->target? 10: 1;
+
+		render(c->coordX + cellH/2, c->coordY + cellH/2);
+
+
+		/*if((*(l + curIndexColumn) + curIndexRow)->targetChecker == 1){ return; }
+
+		(*(l + curIndexColumn) + curIndexRow)->targetChecker += (*(l + curIndexColumn) + curIndexRow)->target? 10: 1;
+
+		render((*(l + curIndexColumn) + curIndexRow)->coordX + cellH/2, (*(l + curIndexColumn) + curIndexRow)->coordY + cellH/2);*/
+	}
+
+	/*void move(Render::GridList l, int curIndex, int cellH) {
 		comp* c = l.head;
 		if(curIndex > (l.tail)->index){ return; }
 		while(c->index != curIndex) { c = c->next; }
+		if(c->targetChecker == 1){ return; }
+		c->targetChecker += c->target? 10: 1;
 		render(c->coordX + cellH/2, c->coordY + cellH/2);
-	}
+	}*/
 
 };

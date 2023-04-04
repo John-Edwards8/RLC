@@ -3,23 +3,24 @@
 class Render: protected virtual Window {
 protected:
 	SDL_Renderer* rend;
-	SDL_Texture *display;
 
 	struct comp{
 		int coordX;
 		int coordY;
 		unsigned int index;
-		comp* next;
-		comp* prev;
+		unsigned int targetChecker;
+		bool target;
+		// comp* next;
+		// comp* prev;
 	};
 
-	struct GridList {
+	/*struct GridList {
 		comp* head;
 		comp* tail;
-	};
+	};*/
 
 
-	void constr_list(GridList& l) {
+	/*void constr_list(GridList& l) {
 		l.head = NULL;
 	}
 
@@ -46,6 +47,7 @@ protected:
 		comp* c = new comp();
 		c->coordX = X;
 		c->coordY = Y;
+		c->target = rand() % 100 < 9? true:false;
 		if (chk_empty(l)) {
 			l.head = c;
 			c->index = 1;
@@ -57,30 +59,19 @@ protected:
 		}
 		l.tail = c;
 	}
-
+*/
 
 public:
 	Render(){
 		this->rend = SDL_CreateRenderer( getWindow(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
-		this->display = SDL_CreateTexture(this->rend, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, getWindowWidth(), getWindowHeight());
-    	SDL_SetRenderTarget(this->rend, this->display);
 	}
 
 	void _render() {
-		SDL_SetRenderTarget(this->rend, NULL);
-        SDL_RenderCopy(this->rend, this->display, NULL, NULL);
 		SDL_RenderPresent(this->rend);
 	}
 	
 	void _clear() {
 		SDL_SetRenderDrawColor( this->rend, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear( this->rend );
-	}	
-
-	void _unbuffered() {
-		SDL_SetRenderTarget(this->rend, this->display);
-	}
-	void _buffered() {
-		SDL_SetRenderTarget(this->rend, NULL);
 	}
 };

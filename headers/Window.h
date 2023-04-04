@@ -60,10 +60,14 @@ public:
 		return this->tik;
 	}
 
+	void setTik(bool t) {
+		this->tik = t;
+	}
+
 	void handleKeys( auto key )	{
 		switch( key.keysym.scancode ) {
 		case SDL_SCANCODE_SPACE:
-			this->tik = true;
+			this->tik = this->tik? false: true;
 			break;
 		case SDL_SCANCODE_ESCAPE:
 			close();

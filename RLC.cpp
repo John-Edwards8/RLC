@@ -5,7 +5,7 @@ int main( int argc, char* args[] ) {
 
 	Manager* mainMan = new Manager(1360, 768, 30, 5);
 	auto win = mainMan->getWindow();
-	mainMan->start();
+	mainMan->initGrid();
 
 	if( !win.init() )
 	{
@@ -17,6 +17,8 @@ int main( int argc, char* args[] ) {
 		bool quit = false;
 
 		bool start = false;
+
+		int moveCount = 0;
 		
 		//Event handler
 		SDL_Event e;
@@ -26,7 +28,7 @@ int main( int argc, char* args[] ) {
 			if (start) { mainMan->clear(); ((Render*)mainMan)->_render(); }
 
 			if (win.getTik()){
-				mainMan->moveBeam();
+				if(moveCount<=1) { mainMan->moveBeam(moveCount); moveCount++; }
 			}
 			
 			//Handle events on queue
