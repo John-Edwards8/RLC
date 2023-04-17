@@ -1,5 +1,5 @@
 #OBJS specifies which files to compile as part of the project
-OBJS = RLC.cpp
+OBJS = RLC.cpp src/Window.cpp src/Render.cpp src/Objects.cpp src/Manager.cpp
 
 #CC specifies which compiler we're using
 CC = g++

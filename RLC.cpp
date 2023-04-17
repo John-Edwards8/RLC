@@ -7,16 +7,13 @@ int main( int argc, char* args[] ) {
 	auto win = mainMan->getWindow();
 	mainMan->initGrid();
 
-	if( !win.init() )
-	{
-		cout << "Failed to initialize!" << endl;
-	}
-	else
-	{
-		//Main loop flag
-		bool quit = false;
-
-		bool start = false;
+	if( !win.init() ) {
+		cout << "Failed to initialize!" << endl; 
+	} else {
+		//Flags
+		bool quit = false;	//exit flag
+		bool tik = false;	//moving the beam
+		bool start = false; //start render of grid
 
 		int moveCount = 0;
 		
@@ -26,19 +23,22 @@ int main( int argc, char* args[] ) {
 		//While application is running
 		while( !quit ) {
 			if (start) { mainMan->clear(); ((Render*)mainMan)->_render(); }
-
-			if (win.getTik()){
-				if(moveCount<=1) { mainMan->moveBeam(moveCount); moveCount++; }
-			}
+			if (tik){ if(moveCount<=1) { mainMan->moveBeam(moveCount); moveCount++; } }
 			
 			//Handle events on queue
 			while( SDL_PollEvent( &e ) != 0 ) {
 				//User requests quit
 				if( e.type == SDL_QUIT ) {
 					quit = true;
-				}
-				else if (e.type == SDL_KEYDOWN) {
-					win.handleKeys( e.key );
+				} else if (e.type == SDL_KEYDOWN) {
+					switch( e.key.keysym.scancode ) {
+					case SDL_SCANCODE_SPACE:
+						tik = tik? false: true;
+						break;
+					case SDL_SCANCODE_ESCAPE:
+						win.close();
+						exit(1);
+					}
 			    }	
 			}
 			start = true;
