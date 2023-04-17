@@ -89,7 +89,7 @@ void Beam::move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH
 	auto c = (*(l + curIndexRow) + curIndexColumn);
 
 	if(c->targetChecker == 1){ return; }
-
+	
 	c->targetChecker += c->target? 10: 1;
 
 	render(c->coordX + cellH/2, c->coordY + cellH/2);

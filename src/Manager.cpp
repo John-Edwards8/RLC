@@ -41,4 +41,24 @@ void Manager::moveBeam(int mvcnt) {
 			else { SDL_Delay(250); }
 		}
 	}
+	log(Grid::getGridCoords(), clsInCol, clsInRow);
+}
+
+void Manager::log(Render::comp** l, int clsInCol, int clsInRow){
+	ofstream file("logs.txt", ios::app);
+
+	time_t tt;
+    struct tm* ti;
+    time(&tt);
+    ti = localtime(&tt);
+  
+	file << endl << asctime(ti) << endl;
+	for(int i = 0; i < clsInCol; i++) {
+		for (int j = 0; j < clsInRow; j++) {
+			if((*(l + j) + i)->targetChecker >= 10) { 
+				file << "Row " << i+1 << "," << " and column " << j+1 << ", have a target." << endl;
+			}
+		}
+	}
+	file.close();
 }

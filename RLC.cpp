@@ -23,7 +23,9 @@ int main( int argc, char* args[] ) {
 		//While application is running
 		while( !quit ) {
 			if (start) { mainMan->clear(); ((Render*)mainMan)->_render(); }
-			if (tik){ if(moveCount<=1) { mainMan->moveBeam(moveCount); moveCount++; } }
+			if (tik){ 
+				if(moveCount<=1) { mainMan->moveBeam(moveCount); moveCount++; } 
+			}
 			
 			//Handle events on queue
 			while( SDL_PollEvent( &e ) != 0 ) {

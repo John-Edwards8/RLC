@@ -5,7 +5,7 @@ public:
 	Manager();
 
 	Manager(int screenWidth, int screenHeight, int cellsInRow, int cellsInColumn);
-	
+
 	Window getWindow();
 	void initGrid();
 
@@ -14,4 +14,6 @@ public:
 	void setStartValues(int screenWidth, int screenHeight);
 
 	void moveBeam(int mvcnt);
+
+	void log(Render::comp** l, int clsInCol, int clsInRow);
 };

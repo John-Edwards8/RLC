@@ -7,7 +7,6 @@ protected:
 	struct comp{
 		int coordX;
 		int coordY;
-		unsigned int index;
 		unsigned int targetChecker;
 		bool target;
 	};
