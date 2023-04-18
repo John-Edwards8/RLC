@@ -3,7 +3,7 @@
 
 int main( int argc, char* args[] ) {
 
-	Manager* mainMan = new Manager(1360, 768, 30, 5);
+	Manager* mainMan = new Manager(1360, 768, 5, 3);
 	auto win = mainMan->getWindow();
 	mainMan->initGrid();
 
@@ -22,9 +22,9 @@ int main( int argc, char* args[] ) {
 
 		//While application is running
 		while( !quit ) {
-			if (start) { mainMan->clear(); ((Render*)mainMan)->_render(); }
+			if (start) { if(moveCount <= 1) { mainMan->clear(); ((Render*)mainMan)->_render(); } }
 			if (tik){ 
-				if(moveCount<=1) { mainMan->moveBeam(moveCount); moveCount++; } 
+				if(moveCount<=1) { mainMan->moveBeam(moveCount); moveCount++; }
 			}
 			
 			//Handle events on queue

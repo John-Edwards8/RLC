@@ -19,6 +19,7 @@ public:
 	void createCoords();
 
 	void onlyRender();
+	void markTargets();
 
 	void setBord(int scrW, int scrH);
 	void setCellSize(int scrH);

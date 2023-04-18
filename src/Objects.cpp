@@ -14,9 +14,9 @@ void Grid::createCoords(){
 
 	for (int i = 0; i < this->cellsInColumn; i++) {
 		for (int j = 0; j < this->cellsInRow; j++) {
-			(*(coords+j)+i)->coordX = this->x + this->bord_x + (cellWidth*j);
-			(*(coords+j)+i)->coordY = this->y + this->bord_y + (cellHeight*i);
-			(*(coords+j)+i)->target = rand() % 10000 < 2? true:false;
+			(*(coords+j)+i)->coordX = this->x + this->bord_x + (this->cellWidth*j);
+			(*(coords+j)+i)->coordY = this->y + this->bord_y + (this->cellHeight*i);
+			(*(coords+j)+i)->target = (rand()*1000) % 3;
 		}
 	}
 }
@@ -32,6 +32,21 @@ void Grid::onlyRender() {
 		}
 	}
 }
+
+void Grid::markTargets() {
+	SDL_SetRenderDrawColor( this->rend, 0xFF, 0x00, 0x00, 0xFF );
+	for (int i = 0; i < this->cellsInColumn; i++)	{
+		for (int j = 0; j < this->cellsInRow; j++)	{
+			if(!(*(coords+j)+i)->target || (*(coords+j)+i)->target <= 10) { continue; }
+			this->x = (*(coords+j)+i)->coordX;
+			this->y = (*(coords+j)+i)->coordY;
+			SDL_Rect outlineRect = { this->x+5, this->y+5, this->cellWidth-10, this->cellHeight-10  };
+			SDL_RenderFillRect( this->rend, &outlineRect );
+		}
+	}
+
+}
+
 
 void Grid::setBord(int scrW, int scrH) {
 	this->bord_x = this->cellsInRow <= this->cellsInColumn? (scrW-scrH)/2 : (scrW-scrH)/6;
@@ -88,9 +103,9 @@ void Beam::render(int newX, int newY) {
 void Beam::move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH) {
 	auto c = (*(l + curIndexRow) + curIndexColumn);
 
-	if(c->targetChecker == 1){ return; }
+	if(c->target < 1){ return; }
 	
-	c->targetChecker += c->target? 10: 1;
+	c->target += c->target > 1? 10: 1;
 
 	render(c->coordX + cellH/2, c->coordY + cellH/2);
 }

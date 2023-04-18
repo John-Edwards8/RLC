@@ -10,6 +10,7 @@ public:
 	void initGrid();
 
 	void clear();
+	void mark();
 
 	void setStartValues(int screenWidth, int screenHeight);
 
