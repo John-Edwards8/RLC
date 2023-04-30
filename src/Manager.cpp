@@ -65,7 +65,7 @@ void Manager::log(Render::comp** l, int clsInCol, int clsInRow){
 	file << endl << asctime(ti) << endl;
 	for(int i = 0; i < clsInCol; i++) {
 		for (int j = 0; j < clsInRow; j++) {
-			if((*(l + j) + i)->target >= 10) { 
+			if((*(l + j) + i)->targetChecker > 0.55) { 
 				file << "Row " << i+1 << "," << " and column " << j+1 << ", have a target." << endl;
 			}
 		}

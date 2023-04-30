@@ -16,7 +16,8 @@ void Grid::createCoords(){
 		for (int j = 0; j < this->cellsInRow; j++) {
 			(*(coords+j)+i)->coordX = this->x + this->bord_x + (this->cellWidth*j);
 			(*(coords+j)+i)->coordY = this->y + this->bord_y + (this->cellHeight*i);
-			(*(coords+j)+i)->target = (rand()*1000) % 3;
+			(*(coords+j)+i)->target = ((rand()*100) % 8) > 0? true: false;
+			(*(coords+j)+i)->targetChecker = 0.5;
 		}
 	}
 }
@@ -37,7 +38,7 @@ void Grid::markTargets() {
 	SDL_SetRenderDrawColor( this->rend, 0xFF, 0x00, 0x00, 0xFF );
 	for (int i = 0; i < this->cellsInColumn; i++)	{
 		for (int j = 0; j < this->cellsInRow; j++)	{
-			if(!(*(coords+j)+i)->target || (*(coords+j)+i)->target <= 10) { continue; }
+			if((*(coords+j)+i)->targetChecker <= 0.51) { continue; }
 			this->x = (*(coords+j)+i)->coordX;
 			this->y = (*(coords+j)+i)->coordY;
 			SDL_Rect outlineRect = { this->x+5, this->y+5, this->cellWidth-10, this->cellHeight-10  };
@@ -103,9 +104,7 @@ void Beam::render(int newX, int newY) {
 void Beam::move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH) {
 	auto c = (*(l + curIndexRow) + curIndexColumn);
 
-	if(c->target < 1){ return; }
-	
-	c->target += c->target > 1? 10: 1;
+	c->targetChecker += c->target || c->targetChecker > 0.55? 0.1: 0.0005;
 
 	render(c->coordX + cellH/2, c->coordY + cellH/2);
 }
