@@ -14,7 +14,7 @@ public:
 
 	void setStartValues(int screenWidth, int screenHeight);
 
-	void moveBeam(int mvcnt);
+	void moveBeam(int mvcnt, int impCnt);
 
 	void log(Render::comp** l, int clsInCol, int clsInRow);
 };

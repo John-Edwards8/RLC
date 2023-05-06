@@ -15,16 +15,17 @@ int main( int argc, char* args[] ) {
 		bool tik = false;	//moving the beam
 		bool start = false; //start render of grid
 
-		int moveCount = 0;
+		int stage = 0;
+		int impulseCount = 1000;
 		
 		//Event handler
 		SDL_Event e;
 
 		//While application is running
 		while( !quit ) {
-			if (start) { if(moveCount <= 1) { mainMan->clear(); ((Render*)mainMan)->_render(); } }
+			if (start) { if(stage <= 1) { mainMan->clear(); ((Render*)mainMan)->_render(); } }
 			if (tik){ 
-				if(moveCount<=1) { mainMan->moveBeam(moveCount); moveCount++; }
+				if(stage<=1) { mainMan->moveBeam(stage, impulseCount); stage++; }
 			}
 			
 			//Handle events on queue

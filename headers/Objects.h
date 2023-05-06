@@ -43,6 +43,6 @@ public:
 	void setValues(int cellH, int bord);
 
 	void render(int newX, int newY);
-	void move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH);
+	void move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH, int impCnt);
 
 };

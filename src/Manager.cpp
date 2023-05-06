@@ -34,14 +34,15 @@ void Manager::setStartValues(int screenWidth, int screenHeight) {
 	Beam::setValues(Grid::getCellHeight(),Grid::getBord());
 }
 
-void Manager::moveBeam(int mvcnt) {
+void Manager::moveBeam(int mvcnt, int impCnt) {
 	int clsInRow = Grid::getCellsInRow();
 	int clsInCol = Grid::getCellsInColumn();
 
 	for (int i = 0; i < clsInCol; i++)	{
 		for (int j = 0; j < clsInRow; j++)	{
 			clear();
-			Beam::move(Grid::getGridCoords(), i, j, Grid::getCellHeight());
+			Beam::move(Grid::getGridCoords(), i, j, Grid::getCellHeight(), impCnt/(clsInRow*clsInCol));
+			impCnt -= impCnt/(clsInRow*clsInCol);
 			Render::_render();
 			Render::_clear();
 			if (!mvcnt) { SDL_Delay(25); }

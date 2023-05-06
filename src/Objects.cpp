@@ -101,10 +101,16 @@ void Beam::render(int newX, int newY) {
     }
 }
 
-void Beam::move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH) {
+void Beam::move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH, int impCnt) {
 	auto c = (*(l + curIndexRow) + curIndexColumn);
 
-	c->targetChecker += c->target || c->targetChecker > 0.55? 0.1: 0.0005;
-
 	render(c->coordX + cellH/2, c->coordY + cellH/2);
+
+	cout << "In cell (" << curIndexColumn+1 << "," << curIndexRow+1 << ") throw " << impCnt << " impulses." << endl;
+
+	if (!c->target) { return; }
+
+	c->targetChecker += 0.1;
+
+	cout << "We have a positive answer." << endl;
 }
