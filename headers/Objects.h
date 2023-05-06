@@ -1,17 +1,25 @@
-#include "Render.h"
+#include "Window.h"
 
-class Grid: protected virtual Render {
+struct comp{
+	unsigned coordX;
+	unsigned coordY;
+	bool target;
+	double targetChecker;
+};
+
+class Grid: protected virtual Window {
 private:
 	//cell dimensions
-	int cellWidth, cellHeight;
+	unsigned cellWidth, cellHeight;
 
 	//number of cells
-	unsigned int cellsInRow, cellsInColumn;
+	unsigned cellsInRow, cellsInColumn;
 
 	//start coords
-	int x, y;
-	int bord_x, bord_y;
+	unsigned x, y;
+	unsigned bord_x, bord_y;
 
+protected:
 	comp** coords;
 public:
 	Grid();
@@ -21,28 +29,27 @@ public:
 	void onlyRender();
 	void markTargets();
 
-	void setBord(int scrW, int scrH);
-	void setCellSize(int scrH);
-	int getCellHeight();
-	int getCellsInRow();
-	int getCellsInColumn();
-	int getBord();
-	void setCellsCount(int cellsInRow, int cellsInColumn);
-	comp** getGridCoords();
+	void setBord(unsigned scrW, unsigned scrH);
+	void setCellSize(unsigned scrH);
+	unsigned getCellHeight();
+	unsigned getCellsInRow();
+	unsigned getCellsInColumn();
+	unsigned getBord();
+	void setCellsCount(unsigned cellsInRow, unsigned cellsInColumn);
 
 };
 
 
-class Beam: protected virtual Render {
+class Beam: protected virtual Window {
 private:
-	int x, y;
+	unsigned x, y;
 	int radius;
 public:
 	Beam();
 
-	void setValues(int cellH, int bord);
+	void setValues(unsigned cellH, unsigned bord);
 
-	void render(int newX, int newY);
-	void move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH, int impCnt);
+	void render(unsigned newX, unsigned newY);
+	void move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt);
 
 };

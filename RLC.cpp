@@ -2,12 +2,17 @@
 
 
 int main( int argc, char* args[] ) {
-
-	Manager* mainMan = new Manager(1360, 768, 5, 3);
-	auto win = mainMan->getWindow();
+	/*Manager* mainMan = new Manager(); //1360, 768, 5, 3
+	try{
+		mainMan->setValues();
+	}catch(const invalid_argument &ex){
+		cout << ex.what() << endl;
+	}
+	*/
+	Manager* mainMan = new Manager(1360, 768, 5, 3); //1360, 768, 5, 3
 	mainMan->initGrid();
 
-	if( !win.init() ) {
+	if( !mainMan->init() ) {
 		cout << "Failed to initialize!" << endl; 
 	} else {
 		//Flags
@@ -23,7 +28,7 @@ int main( int argc, char* args[] ) {
 
 		//While application is running
 		while( !quit ) {
-			if (start) { if(stage <= 1) { mainMan->clear(); ((Render*)mainMan)->_render(); } }
+			if (start) { if(stage <= 1) { mainMan->clear(); mainMan->_render(); } }
 			if (tik){ 
 				if(stage<=1) { mainMan->moveBeam(stage, impulseCount); stage++; }
 			}
@@ -39,7 +44,7 @@ int main( int argc, char* args[] ) {
 						tik = tik? false: true;
 						break;
 					case SDL_SCANCODE_ESCAPE:
-						win.close();
+						mainMan->close();
 						exit(1);
 					}
 			    }	
@@ -49,7 +54,7 @@ int main( int argc, char* args[] ) {
 	}
 
 	//Free resources and close SDL
-	win.close();
+	mainMan->close();
 
 	return 0;
 }

@@ -1,14 +1,15 @@
 #include "../headers/Manager.h"
 
-
 Manager::Manager(){}
 
-Manager::Manager(int screenWidth, int screenHeight, int cellsInRow, int cellsInColumn) : Window(screenWidth,screenHeight) {
+bool Manager::init() { return Window::init(); }
+void Manager::close() { Window::close(); }
+
+void Manager::_render() { Window::_render(); }
+
+Manager::Manager(unsigned screenWidth, unsigned screenHeight, unsigned cellsInRow, unsigned cellsInColumn) : Window(screenWidth,screenHeight) {
 	Grid::setCellsCount(cellsInRow, cellsInColumn);
 	setStartValues(screenWidth, screenHeight);
-}
-Window Manager::getWindow() {
-	Window::_getWindow();
 }
 
 void Manager::initGrid() {
@@ -16,18 +17,18 @@ void Manager::initGrid() {
 }
 
 void Manager::clear() {
-	Render::_clear();
+	Window::_clear();
 	Grid::onlyRender();
 }
 
 void Manager::mark() {
-	Render::_clear();
+	Window::_clear();
 	Grid::onlyRender();
 	Grid::markTargets();
-	Render::_render();
+	Window::_render();
 }
 
-void Manager::setStartValues(int screenWidth, int screenHeight) {
+void Manager::setStartValues(unsigned screenWidth, unsigned screenHeight) {
 	Grid::setBord(screenWidth, screenHeight);
 	Grid::setCellSize(screenHeight);
 
@@ -41,21 +42,21 @@ void Manager::moveBeam(int mvcnt, int impCnt) {
 	for (int i = 0; i < clsInCol; i++)	{
 		for (int j = 0; j < clsInRow; j++)	{
 			clear();
-			Beam::move(Grid::getGridCoords(), i, j, Grid::getCellHeight(), impCnt/(clsInRow*clsInCol));
+			Beam::move(this->coords, i, j, Grid::getCellHeight(), impCnt/(clsInRow*clsInCol));
 			impCnt -= impCnt/(clsInRow*clsInCol);
-			Render::_render();
-			Render::_clear();
+			Window::_render();
+			Window::_clear();
 			if (!mvcnt) { SDL_Delay(25); }
 			else { SDL_Delay(250); }
 		}
 	}
 	if (mvcnt) {
 		mark();
-		log(Grid::getGridCoords(), clsInCol, clsInRow);
+		log(this->coords, clsInCol, clsInRow);
 	}
 }
 
-void Manager::log(Render::comp** l, int clsInCol, int clsInRow){
+void Manager::log(comp** l, int clsInCol, int clsInRow){
 	ofstream file("logs.txt", ios::app);
 
 	time_t tt;
@@ -72,4 +73,19 @@ void Manager::log(Render::comp** l, int clsInCol, int clsInRow){
 		}
 	}
 	file.close();
+}
+
+void Manager::setValues() {
+	int w, h, r, c;
+	cout << "Enter window width:" << endl;
+	cin >> w; w = abs(w); if(!w) throw invalid_argument("Incorrect width!");
+	cout << "Enter window height:" << endl;
+	cin >> h; h = abs(h); if(!h) throw invalid_argument("Incorrect height!");
+	cout << "Enter value of grid's cells (in row, in column):" << endl;
+	cin >> r >> c; r = abs(r); c = abs(c); if(!r||!c) throw invalid_argument("Incorrect values!");
+
+	Window::setSize(w, h);
+	Window::reCreate();
+	Grid::setCellsCount(r, c);
+	setStartValues(w, h);
 }

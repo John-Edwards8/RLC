@@ -49,46 +49,43 @@ void Grid::markTargets() {
 }
 
 
-void Grid::setBord(int scrW, int scrH) {
+void Grid::setBord(unsigned scrW, unsigned scrH) {
 	this->bord_x = this->cellsInRow <= this->cellsInColumn? (scrW-scrH)/2 : (scrW-scrH)/6;
 }
 
-void Grid::setCellSize(int scrH) {
+void Grid::setCellSize(unsigned scrH) {
 	this->cellWidth = this->cellHeight = (scrH/(this->cellsInColumn >= this->cellsInRow? this->cellsInColumn: this->cellsInRow))-this->bord_y/(this->cellsInRow >= 30 || this->cellsInColumn >= 30? 20 : 8);
 }
 
-int Grid::getCellHeight() {
+unsigned Grid::getCellHeight() {
 	return this->cellHeight;
 }
 
-int Grid::getCellsInRow() {
+unsigned Grid::getCellsInRow() {
 	return this->cellsInRow;
 }
 
-int Grid::getCellsInColumn() {
+unsigned Grid::getCellsInColumn() {
 	return this->cellsInColumn;
 }
 
-int Grid::getBord() {
+unsigned Grid::getBord() {
 	return this->bord_x;
 }
-void Grid::setCellsCount(int cellsInRow, int cellsInColumn) {
+void Grid::setCellsCount(unsigned cellsInRow, unsigned cellsInColumn) {
 	this->cellsInRow = cellsInRow;
 	this->cellsInColumn = cellsInColumn;
-}
-Render::comp** Grid::getGridCoords() {
-	return this->coords;
 }
 
 Beam::Beam(){}
 
-void Beam::setValues(int cellH, int bord) {
+void Beam::setValues(unsigned cellH, unsigned bord) {
 	this->x = cellH/2 + bord;
 	this->y = cellH/2;
 	this->radius = cellH/4;
 }
 
-void Beam::render(int newX, int newY) {
+void Beam::render(unsigned newX, unsigned newY) {
 	SDL_SetRenderDrawColor( this->rend, 0x00, 0x00, 0xFF, 0xFF);
     for (int w = 0; w < this->radius * 2; w++) {
         for (int h = 0; h < this->radius * 2; h++) {
@@ -101,7 +98,7 @@ void Beam::render(int newX, int newY) {
     }
 }
 
-void Beam::move(Render::comp** l, int curIndexColumn, int curIndexRow, int cellH, int impCnt) {
+void Beam::move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt) {
 	auto c = (*(l + curIndexRow) + curIndexColumn);
 
 	render(c->coordX + cellH/2, c->coordY + cellH/2);

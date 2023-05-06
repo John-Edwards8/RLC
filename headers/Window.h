@@ -10,27 +10,28 @@ using namespace std;
 class Window {
 private:
 	//Screen dimension
-	int SCREEN_WIDTH;
-	int SCREEN_HEIGHT;
+	unsigned SCREEN_WIDTH, SCREEN_HEIGHT;
 
 	//The window we'll be rendering to
 	SDL_Window* gWindow;
 
 	void initWindow();
+
+protected:
+	SDL_Renderer* rend;
 public:
 	Window();
-	Window(int screenWidth, int screenHeight);
+	Window(unsigned screenWidth, unsigned screenHeight);
 
-	int getWindowWidth();
-	int getWindowHeight();
-	SDL_Window * getWindow();
-	Window _getWindow();
+	unsigned getWindowWidth();
+	unsigned getWindowHeight();
 
-	void setSize(int width, int height);
+	void setSize(unsigned width, unsigned height);
 
+	virtual bool init();
+	virtual void close();
 
-	bool init();
-	void close();
+	void reCreate();
+	virtual void _render();
+	void _clear();
 };
-
-
