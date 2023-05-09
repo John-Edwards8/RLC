@@ -9,7 +9,7 @@ void Window::initWindow() {
 	else {
 		//Create window
 		SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &gWindow, &rend);
-		//SDL_HideWindow( this->gWindow );
+		SDL_HideWindow( this->gWindow );
 	}
 }
 
@@ -17,7 +17,7 @@ Window::Window(){ initWindow(); }
 Window::Window(unsigned screenWidth, unsigned screenHeight) { initWindow(); setSize(screenWidth, screenHeight); reCreate(); }
 
 unsigned Window::getWindowWidth() { return this->SCREEN_WIDTH; }
-unsigned Window::getWindowHeight() {	return this->SCREEN_HEIGHT; }
+unsigned Window::getWindowHeight() { return this->SCREEN_HEIGHT; }
 
 void Window::setSize(unsigned width, unsigned height) {
 	SCREEN_WIDTH = width;

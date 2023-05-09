@@ -78,14 +78,26 @@ void Manager::log(comp** l, int clsInCol, int clsInRow){
 void Manager::setValues() {
 	int w, h, r, c;
 	cout << "Enter window width:" << endl;
-	cin >> w; w = abs(w); if(!w) throw invalid_argument("Incorrect width!");
+	if (!(cin >> w)) {
+		cin.clear();
+		while (cin.get() != '\n') continue;
+		throw invalid_argument("Incorrect width!");
+	}
 	cout << "Enter window height:" << endl;
-	cin >> h; h = abs(h); if(!h) throw invalid_argument("Incorrect height!");
+	if (!(cin >> h)) {
+		cin.clear();
+		while (cin.get() != '\n') continue;
+		throw invalid_argument("Incorrect height!");
+	}
 	cout << "Enter value of grid's cells (in row, in column):" << endl;
-	cin >> r >> c; r = abs(r); c = abs(c); if(!r||!c) throw invalid_argument("Incorrect values!");
+	if (!(cin >> r >> c)) {
+		cin.clear();
+		while (cin.get() != '\n') continue;
+		throw invalid_argument("Incorrect values!");
+	}
 
-	Window::setSize(w, h);
+	Window::setSize(abs(w), abs(h));
 	Window::reCreate();
-	Grid::setCellsCount(r, c);
-	setStartValues(w, h);
+	Grid::setCellsCount(abs(r), abs(c));
+	setStartValues(abs(w), abs(h));
 }

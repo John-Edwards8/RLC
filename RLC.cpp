@@ -2,14 +2,18 @@
 
 
 int main( int argc, char* args[] ) {
-	/*Manager* mainMan = new Manager(); //1360, 768, 5, 3
-	try{
-		mainMan->setValues();
-	}catch(const invalid_argument &ex){
-		cout << ex.what() << endl;
-	}
-	*/
-	Manager* mainMan = new Manager(1360, 768, 5, 3); //1360, 768, 5, 3
+	Manager* mainMan = new Manager();
+	bool a;
+	do{
+		a = false;
+		try{
+			mainMan->setValues();
+		}catch(const invalid_argument &ex){
+			cout << ex.what() << endl;
+			a = true;
+		}
+	}while(a);
+	
 	mainMan->initGrid();
 
 	if( !mainMan->init() ) {
