@@ -24,7 +24,6 @@ int main( int argc, char* args[] ) {
 		bool tik = false;	//moving the beam
 		bool start = false; //start render of grid
 
-		int stage = 0;
 		int impulseCount = 1000;
 		
 		//Event handler
@@ -32,9 +31,12 @@ int main( int argc, char* args[] ) {
 
 		//While application is running
 		while( !quit ) {
-			if (start) { if(stage <= 1) { mainMan->clear(); mainMan->_render(); } }
+			if (start) {
+				mainMan->renderGrid();
+				mainMan->_render();
+			}
 			if (tik){ 
-				if(stage<=1) { mainMan->moveBeam(stage, impulseCount); stage++; }
+				mainMan->moveBeam(impulseCount);
 			}
 			
 			//Handle events on queue

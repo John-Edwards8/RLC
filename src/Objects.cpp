@@ -38,11 +38,12 @@ void Grid::markTargets() {
 	SDL_SetRenderDrawColor( this->rend, 0xFF, 0x00, 0x00, 0xFF );
 	for (int i = 0; i < this->cellsInColumn; i++)	{
 		for (int j = 0; j < this->cellsInRow; j++)	{
-			if((*(coords+j)+i)->targetChecker <= 0.51) { continue; }
-			this->x = (*(coords+j)+i)->coordX;
-			this->y = (*(coords+j)+i)->coordY;
-			SDL_Rect outlineRect = { this->x+5, this->y+5, this->cellWidth-10, this->cellHeight-10  };
-			SDL_RenderFillRect( this->rend, &outlineRect );
+			if((*(coords+j)+i)->targetChecker >= 0.9) {
+				this->x = (*(coords+j)+i)->coordX;
+				this->y = (*(coords+j)+i)->coordY;
+				SDL_Rect outlineRect = { this->x+5, this->y+5, this->cellWidth-10, this->cellHeight-10  };
+				SDL_RenderFillRect( this->rend, &outlineRect );
+			}
 		}
 	}
 
