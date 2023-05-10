@@ -78,6 +78,15 @@ void Grid::setCellsCount(unsigned cellsInRow, unsigned cellsInColumn) {
 	this->cellsInColumn = cellsInColumn;
 }
 
+void Grid::recalcTargets(comp** l, int curIndexColumn, int curIndexRow, int curTargs) {
+	if(this->viewedTargs == curTargs && curTargs != 0) return;
+	auto c = (*(l + curIndexRow) + curIndexColumn);
+	if(!c->target) return;
+	this->viewedTargs++;
+}
+
+int Grid::getViewedTargets() { return this->viewedTargs; }
+
 Beam::Beam(){}
 
 void Beam::setValues(unsigned cellH, unsigned bord) {
@@ -99,16 +108,16 @@ void Beam::render(unsigned newX, unsigned newY) {
     }
 }
 
-void Beam::move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt) {
+void Beam::move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first) {
 	auto c = (*(l + curIndexRow) + curIndexColumn);
 
 	render(c->coordX + cellH/2, c->coordY + cellH/2);
-
-	cout << "In cell (" << curIndexColumn+1 << "," << curIndexRow+1 << ") throw " << impCnt << " impulses." << endl;
+	if(!first) cout << "In cell (" << curIndexColumn+1 << "," << curIndexRow+1 << ") throw " << (!c->target? impCnt : dImpCnt) << " impulses." << endl;
+	else cout << "In cell (" << curIndexColumn+1 << "," << curIndexRow+1 << ") throw " << impCnt << " impulses." << endl;
 
 	if (!c->target) { return; }
 
-	c->targetChecker += 0.1;
+	c->targetChecker += dImpCnt*0.001; //100 імпульсів = +0.1 ймовірності
 
 	cout << "We have a positive answer." << endl;
 }

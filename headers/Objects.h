@@ -19,6 +19,7 @@ private:
 	unsigned x, y;
 	unsigned bord_x, bord_y;
 
+	int viewedTargs;
 protected:
 	comp** coords;
 public:
@@ -37,6 +38,8 @@ public:
 	unsigned getBord();
 	void setCellsCount(unsigned cellsInRow, unsigned cellsInColumn);
 
+	void recalcTargets(comp** l, int curIndexColumn, int curIndexRow, int curTargs);
+	int getViewedTargets();
 };
 
 
@@ -50,6 +53,6 @@ public:
 	void setValues(unsigned cellH, unsigned bord);
 
 	void render(unsigned newX, unsigned newY);
-	void move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt);
+	void move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first);
 
 };

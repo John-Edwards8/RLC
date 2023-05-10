@@ -29,11 +29,16 @@ void Manager::moveBeam(int impCnt) {
 	int clsInRow = Grid::getCellsInRow();
 	int clsInCol = Grid::getCellsInColumn();
 
+	targets = Grid::getViewedTargets();
+	if( targets != 0 ) { doubleImpForCell = impForCell*2; first = false; }
+	else if( targets == 0 && first == false ) { done = true; return; }
+	impForCell = (impCnt-doubleImpForCell*targets)/(clsInRow*clsInCol-targets);
+
 	for (int i = 0; i < clsInCol; i++)	{
 		for (int j = 0; j < clsInRow; j++)	{
 			renderGrid();
-			Beam::move(this->coords, i, j, Grid::getCellHeight(), impCnt/(clsInRow*clsInCol));
-			impCnt -= impCnt/(clsInRow*clsInCol);
+			Beam::move(this->coords, i, j, Grid::getCellHeight(), impForCell, doubleImpForCell, first);
+			Grid::recalcTargets(this->coords, i, j, targets);
 			Window::_render();
 			Window::_clear();
 			SDL_Delay(250);

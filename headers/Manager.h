@@ -3,6 +3,10 @@
 class Manager: public Grid, public Beam {
 private:
 	bool done = false;
+	bool first = true;
+	int impForCell = 0;
+	int doubleImpForCell = 0;
+	int targets = 0;
 public:
 	Manager();
 
