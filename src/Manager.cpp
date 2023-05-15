@@ -24,7 +24,7 @@ void Manager::mark() {
 	Window::_render();
 }
 
-void Manager::moveBeam(int impCnt) {
+void Manager::moveBeam(int impCnt, int freq) {
 	if(done) { return; }
 	int clsInRow = Grid::getCellsInRow();
 	int clsInCol = Grid::getCellsInColumn();
@@ -37,7 +37,8 @@ void Manager::moveBeam(int impCnt) {
 	for (int i = 0; i < clsInCol; i++)	{
 		for (int j = 0; j < clsInRow; j++)	{
 			renderGrid();
-			Beam::move(this->coords, i, j, Grid::getCellHeight(), impForCell, doubleImpForCell, first);
+			allImp += Beam::move(this->coords, i, j, Grid::getCellHeight(), impForCell, doubleImpForCell, first);
+			Grid::isTarget(this->coords, i, j, allImp, freq);
 			Grid::recalcTargets(this->coords, i, j, targets);
 			Window::_render();
 			Window::_clear();
@@ -61,7 +62,7 @@ bool Manager::log(comp** l, int clsInCol, int clsInRow){
 	for(int i = 0; i < clsInCol; i++) {
 		for (int j = 0; j < clsInRow; j++) {
 			if((*(l + j) + i)->targetChecker >= 0.9) { 
-				file << "Row " << i+1 << "," << " and column " << j+1 << ", have a target." << endl;
+				file << "Строка " << i+1 << "," << " та колонка " << j+1 << ", мають ціль." << endl;
 				check = true;
 			}
 		}
@@ -72,23 +73,23 @@ bool Manager::log(comp** l, int clsInCol, int clsInRow){
 
 void Manager::setValues() {
 	int w, h, r, c;
-	cout << "Enter window width:" << endl;
+	cout << "Введіть ширину вікна:" << endl;
 	if (!(cin >> w)) {
 		cin.clear();
 		while (cin.get() != '\n') continue;
-		throw invalid_argument("Incorrect width!");
+		throw invalid_argument("Неправильно введена ширина!");
 	}
-	cout << "Enter window height:" << endl;
+	cout << "Введіть висоту вікна:" << endl;
 	if (!(cin >> h)) {
 		cin.clear();
 		while (cin.get() != '\n') continue;
-		throw invalid_argument("Incorrect height!");
+		throw invalid_argument("Неправильно введена висота!");
 	}
-	cout << "Enter value of grid's cells (in row, in column):" << endl;
+	cout << "Введіть значення клітин сітки (скільки в строці та в колонці):" << endl;
 	if (!(cin >> r >> c)) {
 		cin.clear();
 		while (cin.get() != '\n') continue;
-		throw invalid_argument("Incorrect values!");
+		throw invalid_argument("Неправильно введені значення!");
 	}
 
 	Window::setSize(abs(w), abs(h));

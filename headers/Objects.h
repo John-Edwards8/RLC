@@ -4,6 +4,7 @@ struct comp{
 	unsigned coordX;
 	unsigned coordY;
 	bool target;
+	bool isFound;
 	double targetChecker;
 };
 
@@ -40,6 +41,7 @@ public:
 
 	void recalcTargets(comp** l, int curIndexColumn, int curIndexRow, int curTargs);
 	int getViewedTargets();
+	void isTarget(comp** l, int curIndexColumn, int curIndexRow, int imp, int freq);
 };
 
 
@@ -53,6 +55,6 @@ public:
 	void setValues(unsigned cellH, unsigned bord);
 
 	void render(unsigned newX, unsigned newY);
-	void move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first);
+	int move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first);
 
 };

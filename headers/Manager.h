@@ -7,6 +7,7 @@ private:
 	int impForCell = 0;
 	int doubleImpForCell = 0;
 	int targets = 0;
+	int allImp = 0;
 public:
 	Manager();
 
@@ -20,7 +21,7 @@ public:
 	void renderGrid();
 	void mark();
 
-	void moveBeam(int impCnt);
+	void moveBeam(int impCnt, int freq);
 
 	bool log(comp** l, int clsInCol, int clsInRow);
 

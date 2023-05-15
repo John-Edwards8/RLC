@@ -3,7 +3,7 @@
 void Window::initWindow() {
 	//Initialize SDL
 	if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
-		cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << endl;
+		cout << "SDL не зміг ініціалізуватися! Помилка SDL: " << SDL_GetError() << endl;
 		exit(1);
 	}
 	else {
@@ -30,7 +30,7 @@ void Window::setSize(unsigned width, unsigned height) {
 bool Window::init(){
 	bool success = SDL_Init( SDL_INIT_VIDEO ) < 0? false : true;
 
-	if( !success ) { cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << endl; }
+	if( !success ) { cout << "SDL не зміг ініціалізуватися! Помилка SDL: " << SDL_GetError() << endl; }
 
 	return success;
 }

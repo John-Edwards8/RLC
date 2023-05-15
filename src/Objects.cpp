@@ -17,6 +17,7 @@ void Grid::createCoords(){
 			(*(coords+j)+i)->coordX = this->x + this->bord_x + (this->cellWidth*j);
 			(*(coords+j)+i)->coordY = this->y + this->bord_y + (this->cellHeight*i);
 			(*(coords+j)+i)->target = ((rand()*100) % 8) > 0? true: false;
+			(*(coords+j)+i)->isFound = false;
 			(*(coords+j)+i)->targetChecker = 0.5;
 		}
 	}
@@ -87,6 +88,12 @@ void Grid::recalcTargets(comp** l, int curIndexColumn, int curIndexRow, int curT
 
 int Grid::getViewedTargets() { return this->viewedTargs; }
 
+void Grid::isTarget(comp** l, int curIndexColumn, int curIndexRow, int imp, int freq) {
+	if((*(l + curIndexRow) + curIndexColumn)->targetChecker >= 0.9 && (*(l + curIndexRow) + curIndexColumn)->isFound == false) {
+		cout << "У строці " << curIndexColumn+1 << "," << " та колонці " << curIndexRow+1 << ", знайдено ціль за " << (double)imp/freq << " секунд." << endl;
+	}
+}
+
 Beam::Beam(){}
 
 void Beam::setValues(unsigned cellH, unsigned bord) {
@@ -108,16 +115,18 @@ void Beam::render(unsigned newX, unsigned newY) {
     }
 }
 
-void Beam::move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first) {
+int Beam::move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first) {
 	auto c = (*(l + curIndexRow) + curIndexColumn);
 
 	render(c->coordX + cellH/2, c->coordY + cellH/2);
-	if(!first) cout << "In cell (" << curIndexColumn+1 << "," << curIndexRow+1 << ") throw " << (!c->target? impCnt : dImpCnt) << " impulses." << endl;
-	else cout << "In cell (" << curIndexColumn+1 << "," << curIndexRow+1 << ") throw " << impCnt << " impulses." << endl;
+	if(!first) { cout << "У клітинку (" << curIndexColumn+1 << "," << curIndexRow+1 << ") направлено " << (!c->target? impCnt : dImpCnt) << " імпульсів." << endl; }
+	else { cout << "У клітинку (" << curIndexColumn+1 << "," << curIndexRow+1 << ") направлено " << impCnt << " імпульсів." << endl; }
 
-	if (!c->target) { return; }
+	if (!c->target) { return impCnt; }
 
 	c->targetChecker += dImpCnt*0.001; //100 імпульсів = +0.1 ймовірності
 
-	cout << "We have a positive answer." << endl;
+	cout << "Отримано позитивну відповідь." << endl;
+	if (c->target && !first) { return dImpCnt; }
+	else return impCnt;
 }

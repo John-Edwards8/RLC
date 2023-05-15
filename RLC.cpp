@@ -24,6 +24,7 @@ int main( int argc, char* args[] ) {
 		bool tik = false;	//moving the beam
 		bool start = false; //start render of grid
 
+		int frequency = 100;
 		int impulseCount = 1000;
 		
 		//Event handler
@@ -36,7 +37,7 @@ int main( int argc, char* args[] ) {
 				mainMan->_render();
 			}
 			if (tik){ 
-				mainMan->moveBeam(impulseCount);
+				mainMan->moveBeam(impulseCount, frequency);
 			}
 			
 			//Handle events on queue
