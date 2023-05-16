@@ -35,11 +35,13 @@ void Grid::onlyRender() {
 	}
 }
 
-void Grid::markTargets() {
+bool Grid::markTargets() {
+	bool isT = false;
 	SDL_SetRenderDrawColor( this->rend, 0xFF, 0x00, 0x00, 0xFF );
 	for (int i = 0; i < this->cellsInColumn; i++)	{
 		for (int j = 0; j < this->cellsInRow; j++)	{
 			if((*(coords+j)+i)->targetChecker >= 0.9) {
+				isT = true;
 				this->x = (*(coords+j)+i)->coordX;
 				this->y = (*(coords+j)+i)->coordY;
 				SDL_Rect outlineRect = { this->x+5, this->y+5, this->cellWidth-10, this->cellHeight-10  };
@@ -47,7 +49,7 @@ void Grid::markTargets() {
 			}
 		}
 	}
-
+	return isT;
 }
 
 

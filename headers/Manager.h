@@ -3,6 +3,7 @@
 class Manager: public Grid, public Beam {
 private:
 	bool done = false;
+	bool logging = false;
 	bool first = true;
 	int impForCell = 0;
 	int doubleImpForCell = 0;
@@ -23,7 +24,7 @@ public:
 
 	void moveBeam(int impCnt, int freq);
 
-	bool log(comp** l, int clsInCol, int clsInRow);
+	void log(comp** l, int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt);
 
 	void setValues();
 };

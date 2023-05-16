@@ -20,7 +20,7 @@ void Manager::renderGrid() {
 
 void Manager::mark() {
 	renderGrid();
-	Grid::markTargets();
+	done = Grid::markTargets();
 	Window::_render();
 }
 
@@ -40,35 +40,36 @@ void Manager::moveBeam(int impCnt, int freq) {
 			allImp += Beam::move(this->coords, i, j, Grid::getCellHeight(), impForCell, doubleImpForCell, first);
 			Grid::isTarget(this->coords, i, j, allImp, freq);
 			Grid::recalcTargets(this->coords, i, j, targets);
+			log(this->coords, i, j, allImp, freq, impForCell, doubleImpForCell);
 			Window::_render();
 			Window::_clear();
 			SDL_Delay(250);
 		}
 	}
 	mark();
-	done = log(this->coords, clsInCol, clsInRow);
 }
 
-bool Manager::log(comp** l, int clsInCol, int clsInRow){
-	bool check = false;
+void Manager::log(comp** l, int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt){
+	auto c = (*(l + cJ) + cI);
 	ofstream file("logs.txt", ios::app);
+	if(first && !logging) {
+		time_t tt;
+	    struct tm* ti;
+	    time(&tt);
+	    ti = localtime(&tt);
+	  
+		file << endl << asctime(ti) << endl;
+		logging = true;
+	}
+	if(!first) { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << (!c->target? impCnt : dImpCnt) << " імпульсів." << endl; }
+	else { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << impCnt << " імпульсів." << endl; }
 
-	time_t tt;
-    struct tm* ti;
-    time(&tt);
-    ti = localtime(&tt);
-  
-	file << endl << asctime(ti) << endl;
-	for(int i = 0; i < clsInCol; i++) {
-		for (int j = 0; j < clsInRow; j++) {
-			if((*(l + j) + i)->targetChecker >= 0.9) { 
-				file << "Строка " << i+1 << "," << " та колонка " << j+1 << ", мають ціль." << endl;
-				check = true;
-			}
-		}
+	if (c->target) { file << "Отримано позитивну відповідь." << endl; }
+
+	if(c->targetChecker >= 0.9 && c->isFound == false) {
+		file << "У строці " << cI+1 << "," << " та колонці " << cJ+1 << ", знайдено ціль за " << (double)imp/freq << " секунд." << endl;
 	}
 	file.close();
-	return check;
 }
 
 void Manager::setValues() {

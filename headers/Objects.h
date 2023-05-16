@@ -29,7 +29,7 @@ public:
 	void createCoords();
 
 	void onlyRender();
-	void markTargets();
+	bool markTargets();
 
 	void setBord(unsigned scrW, unsigned scrH);
 	void setCellSize(unsigned scrH);
