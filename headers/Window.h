@@ -1,75 +1,34 @@
-#include "Prototypes.h"
+#include <SDL2/SDL.h>
+#include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <ctime>
+ 
+using namespace std;
+
 
 class Window {
 private:
-	//Screen dimension
-	int SCREEN_WIDTH;
-	int SCREEN_HEIGHT;
+	//Розміри екрану
+	unsigned screenWidth, screenHeight;
 
-	//The window we'll be rendering to
+	//Об'єкт вікна SDL
 	SDL_Window* gWindow;
 
-	void initWindow() {
-		//Initialize SDL
-		if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
-			cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << endl;
-			exit(1);
-		}
-		else {
-			//Create window
-			gWindow = SDL_CreateWindow( "RLC", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-		}
-	}
+	void initWindow();
+
+protected:
+	//Об'єкт рендера SDL
+	SDL_Renderer* rend;
 public:
-	Window(){ initWindow(); }
-	Window(int screenWidth, int screenHeight) {setSize(screenWidth, screenHeight); initWindow();}
+	Window();
 
-	SDL_Window * getWindow() {
-		return this->gWindow;
-	}
+	void setValues(unsigned width, unsigned height);
 
-	Window _getWindow() {
-		return *this;
-	}
+	bool init();
+	void close();
+	void _render();
 
-	void setSize(int width, int height) {
-		SCREEN_WIDTH = width > 0? width : SCREEN_WIDTH;
-		SCREEN_HEIGHT = height > 0? height : SCREEN_HEIGHT;
-	}
-
-	int getWindowWidth() {
-		return this->SCREEN_WIDTH;
-	}
-
-	int getWindowHeight() {
-		return this->SCREEN_HEIGHT;
-	}
-
-
-	bool init(){
-		bool success = SDL_Init( SDL_INIT_VIDEO ) < 0? false : true;
-
-		if( !success ) { cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << endl; }
-
-		return success;
-	}
-
-	void handleKeys( auto key )	{
-		switch( key.keysym.scancode ) {
-		case SDL_SCANCODE_ESCAPE:
-			close();
-			exit(1);
-		}
-	}
-
-	void close() { 
-		//Destroy window	
-		SDL_DestroyWindow( gWindow );
-		gWindow = NULL;
-
-		//Quit SDL subsystems
-		SDL_Quit();
-	}
+	void reCreate();
+	void _clear();
 };
-
-

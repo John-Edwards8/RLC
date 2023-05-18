@@ -1,29 +1,27 @@
 #include "Objects.h"
 
 class Manager: public Grid, public Beam {
+private:
+	bool done = false;
+	bool logging = false;
+	bool first = true;
+	int impForCell = 0;
+	int doubleImpForCell = 0;
+	int targets = 0;
+	int allImp = 0;
 public:
-	Manager(){}
+	bool init();
+	void close();
+	void _render();
 
-	Manager(int screenWidth, int screenHeight, int cellsInRow, int cellsInColumn) : Window(screenWidth,screenHeight) {
-		Grid::setCellsCount(cellsInRow, cellsInColumn);
-		setStartValues(screenWidth, screenHeight);
-	}
-	Window getWindow() {
-		Window::_getWindow();
-	}
+	void initGrid();
+	void renderGrid();
 
-	void start(){
-		Render::_clear();
-		Grid::render();
-		Beam::render();
-		Render::_render();
-	}
+	void mark();
 
-	void setStartValues(int screenWidth, int screenHeight){
-		Grid::setBord(screenWidth, screenHeight);
-		Grid::setCellSize(screenHeight);
+	void moveBeam(int impCnt, int freq);
 
-		Beam::setValues(Grid::getCellHeight(),Grid::getBord());
+	void log(int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt);
 
-	}
+	void setValues(int& fr, int& impulse);
 };
