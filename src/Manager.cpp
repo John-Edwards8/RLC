@@ -1,67 +1,62 @@
 #include "../headers/Manager.h"
 
-Manager::Manager(){}
-
 bool Manager::init() { return Window::init(); }
 void Manager::close() { Window::close(); }
-
-void Manager::_render() {
-	if(done) { return; }
-	Window::_render();
-}
+void Manager::_render() { if(!this->done) Window::_render(); }
 
 void Manager::initGrid() { Grid::createCoords(); }
-
 void Manager::renderGrid() {
-	if(done) { return; }
-	Window::_clear();
-	Grid::onlyRender();
+	if(!this->done) {
+		Window::_clear();
+		Grid::onlyRender();
+	}
 }
 
 void Manager::mark() {
 	renderGrid();
-	done = Grid::markTargets();
+	this->done = Grid::markTargets();
 	Window::_render();
 }
 
 void Manager::moveBeam(int impCnt, int freq) {
-	if(done) { return; }
+	if(this->done) { return; }
 	int clsInRow = Grid::getCellsInRow();
 	int clsInCol = Grid::getCellsInColumn();
 
-	targets = Grid::getViewedTargets();
-	if( targets != 0 ) { doubleImpForCell = impForCell*2; first = false; }
-	else if( targets == 0 && first == false ) { done = true; return; }
-	impForCell = (impCnt-doubleImpForCell*targets)/(clsInRow*clsInCol-targets);
+	this->targets = Grid::getViewedTargets();
+	if( this->targets != 0 ) { this->doubleImpForCell = this->impForCell*2; this->first = false; }
+	else if( this->targets == 0 && this->first == false ) { this->done = true; return; }
+	this->impForCell = (impCnt-this->doubleImpForCell*this->targets)/(clsInRow*clsInCol-this->targets);
 
 	for (int i = 0; i < clsInCol; i++)	{
 		for (int j = 0; j < clsInRow; j++)	{
 			renderGrid();
-			allImp += Beam::move(this->coords, i, j, Grid::getCellHeight(), impForCell, doubleImpForCell, first);
-			Grid::isTarget(this->coords, i, j, allImp, freq);
-			Grid::recalcTargets(this->coords, i, j, targets);
-			log(this->coords, i, j, allImp, freq, impForCell, doubleImpForCell);
+			this->allImp += Beam::move(this->coords, i, j, Grid::getCellHeight(), this->impForCell, this->doubleImpForCell, this->first);
+			Grid::isTarget(i, j, this->allImp, freq);
+			Grid::recalcTargets(i, j, this->targets);
+			log(i, j, this->allImp, freq, this->impForCell, this->doubleImpForCell);
 			Window::_render();
 			Window::_clear();
 			SDL_Delay(250);
 		}
 	}
 	mark();
+	if( this->targets == 0 ) { this->first = false; }
 }
 
-void Manager::log(comp** l, int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt){
-	auto c = (*(l + cJ) + cI);
+void Manager::log(int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt){
+	auto c = (*(this->coords + cJ) + cI);
 	ofstream file("logs.txt", ios::app);
-	if(first && !logging) {
+	if(this->first && !this->logging) {
 		time_t tt;
 	    struct tm* ti;
 	    time(&tt);
 	    ti = localtime(&tt);
 	  
 		file << endl << asctime(ti) << endl;
-		logging = true;
+		this->logging = true;
 	}
-	if(!first) { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << (!c->target? impCnt : dImpCnt) << " імпульсів." << endl; }
+	if(!this->first) { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << (!c->target? impCnt : dImpCnt) << " імпульсів." << endl; }
 	else { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << impCnt << " імпульсів." << endl; }
 
 	if (c->target) { file << "Отримано позитивну відповідь." << endl; }
@@ -72,7 +67,7 @@ void Manager::log(comp** l, int cI, int cJ, int imp, int freq, int impCnt, int d
 	file.close();
 }
 
-void Manager::setValues() {
+void Manager::setValues(int& fr, int& impulse) {
 	int w, h, r, c;
 	cout << "Введіть ширину вікна:" << endl;
 	if (!(cin >> w)) {
@@ -92,11 +87,20 @@ void Manager::setValues() {
 		while (cin.get() != '\n') continue;
 		throw invalid_argument("Неправильно введені значення!");
 	}
+	cout << "Введіть загальну кількість імпульсів:" << endl;
+	if (!(cin >> impulse)) {
+		cin.clear();
+		while (cin.get() != '\n') continue;
+		throw invalid_argument("Неправильно введена кількість!");
+	}
+	cout << "Введіть частоту імпульсів:" << endl;
+	if (!(cin >> fr)) {
+		cin.clear();
+		while (cin.get() != '\n') continue;
+		throw invalid_argument("Неправильно введена частота!");
+	}
 
-	Window::setSize(abs(w), abs(h));
-	Window::reCreate();
-	Grid::setCellsCount(abs(r), abs(c));
-	Grid::setBord(abs(w), abs(h));
-	Grid::setCellSize(abs(h));
+	Window::setValues(abs(w), abs(h)); Window::reCreate();
+	Grid::setValues(abs(w), abs(h), abs(r), abs(c));
 	Beam::setValues(Grid::getCellHeight(),Grid::getBord());
 }

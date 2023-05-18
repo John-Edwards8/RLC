@@ -10,21 +10,18 @@ private:
 	int targets = 0;
 	int allImp = 0;
 public:
-	Manager();
-
-	Manager(unsigned screenWidth, unsigned screenHeight, unsigned cellsInRow, unsigned cellsInColumn);
-
-	virtual bool init();
-	virtual void close();
-	virtual void _render();
+	bool init();
+	void close();
+	void _render();
 
 	void initGrid();
 	void renderGrid();
+
 	void mark();
 
 	void moveBeam(int impCnt, int freq);
 
-	void log(comp** l, int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt);
+	void log(int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt);
 
-	void setValues();
+	void setValues(int& fr, int& impulse);
 };

@@ -4,33 +4,32 @@
 int main( int argc, char* args[] ) {
 	Manager* mainMan = new Manager();
 	bool a;
+	int frequency;
+	int impulseCount;
 	do{
 		a = false;
 		try{
-			mainMan->setValues();
+			mainMan->setValues(static_cast<int&>(frequency), static_cast<int&>(impulseCount));
 		}catch(const invalid_argument &ex){
 			cout << ex.what() << endl;
 			a = true;
 		}
 	}while(a);
 	
+	//ініціалізація сітки та вікна
 	mainMan->initGrid();
-
 	if( !mainMan->init() ) {
-		cout << "Failed to initialize!" << endl; 
+		cout << "Невдала ініціалізація!" << endl; 
 	} else {
-		//Flags
-		bool quit = false;	//exit flag
-		bool tik = false;	//moving the beam
-		bool start = false; //start render of grid
+		//Прапорці
+		bool quit = false;	//прапор виходу
+		bool tik = false;	//прапор початку руху променя
+		bool start = false; //прапор "першого циклу програми"
 
-		int frequency = 100;
-		int impulseCount = 1000;
-		
-		//Event handler
+		//Оброблювач подій
 		SDL_Event e;
 
-		//While application is running
+		//Поки программа працює
 		while( !quit ) {
 			if (start) {
 				mainMan->renderGrid();
@@ -40,9 +39,8 @@ int main( int argc, char* args[] ) {
 				mainMan->moveBeam(impulseCount, frequency);
 			}
 			
-			//Handle events on queue
+			//Оброблюємо події з черги
 			while( SDL_PollEvent( &e ) != 0 ) {
-				//User requests quit
 				if( e.type == SDL_QUIT ) {
 					quit = true;
 				} else if (e.type == SDL_KEYDOWN) {
@@ -60,7 +58,7 @@ int main( int argc, char* args[] ) {
 		}
 	}
 
-	//Free resources and close SDL
+	//Звільнити ресурси та закрити SDL
 	mainMan->close();
 
 	return 0;

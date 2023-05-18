@@ -9,29 +9,26 @@ using namespace std;
 
 class Window {
 private:
-	//Screen dimension
-	unsigned SCREEN_WIDTH, SCREEN_HEIGHT;
+	//Розміри екрану
+	unsigned screenWidth, screenHeight;
 
-	//The window we'll be rendering to
+	//Об'єкт вікна SDL
 	SDL_Window* gWindow;
 
 	void initWindow();
 
 protected:
+	//Об'єкт рендера SDL
 	SDL_Renderer* rend;
 public:
 	Window();
-	Window(unsigned screenWidth, unsigned screenHeight);
 
-	unsigned getWindowWidth();
-	unsigned getWindowHeight();
+	void setValues(unsigned width, unsigned height);
 
-	void setSize(unsigned width, unsigned height);
-
-	virtual bool init();
-	virtual void close();
+	bool init();
+	void close();
+	void _render();
 
 	void reCreate();
-	virtual void _render();
 	void _clear();
 };

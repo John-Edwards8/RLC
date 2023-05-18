@@ -1,21 +1,25 @@
 #include "../headers/Objects.h"
 
-
-Grid::Grid(){}
+Grid::~Grid() {
+	for (int i = 0; i < this->cellsInRow; i++) {
+		delete *(this->coords+i);
+	}
+	delete[] this->coords;
+}
 
 void Grid::createCoords(){
 	srand(time(NULL));
 	this->x = 0;
-	this->y = this->bord_y;
-	coords = new comp*[this->cellsInRow];
+	this->y = this->bordY;
+	this->coords = new cell*[this->cellsInRow];
 	for (int i = 0; i < this->cellsInRow; i++) {
-		*(coords+i) = new comp[this->cellsInColumn];
+		*(this->coords+i) = new cell[this->cellsInColumn];
 	}
 
 	for (int i = 0; i < this->cellsInColumn; i++) {
 		for (int j = 0; j < this->cellsInRow; j++) {
-			(*(coords+j)+i)->coordX = this->x + this->bord_x + (this->cellWidth*j);
-			(*(coords+j)+i)->coordY = this->y + this->bord_y + (this->cellHeight*i);
+			(*(coords+j)+i)->coordX = this->x + this->bordX + (this->cellWidth*j);
+			(*(coords+j)+i)->coordY = this->y + this->bordY + (this->cellHeight*i);
 			(*(coords+j)+i)->target = ((rand()*100) % 8) > 0? true: false;
 			(*(coords+j)+i)->isFound = false;
 			(*(coords+j)+i)->targetChecker = 0.5;
@@ -52,51 +56,34 @@ bool Grid::markTargets() {
 	return isT;
 }
 
-
-void Grid::setBord(unsigned scrW, unsigned scrH) {
-	this->bord_x = this->cellsInRow <= this->cellsInColumn? (scrW-scrH)/2 : (scrW-scrH)/6;
-}
-
-void Grid::setCellSize(unsigned scrH) {
-	this->cellWidth = this->cellHeight = (scrH/(this->cellsInColumn >= this->cellsInRow? this->cellsInColumn: this->cellsInRow))-this->bord_y/(this->cellsInRow >= 30 || this->cellsInColumn >= 30? 20 : 8);
-}
-
-unsigned Grid::getCellHeight() {
-	return this->cellHeight;
-}
-
-unsigned Grid::getCellsInRow() {
-	return this->cellsInRow;
-}
-
-unsigned Grid::getCellsInColumn() {
-	return this->cellsInColumn;
-}
-
-unsigned Grid::getBord() {
-	return this->bord_x;
-}
-void Grid::setCellsCount(unsigned cellsInRow, unsigned cellsInColumn) {
+void Grid::setValues(unsigned scrW, unsigned scrH, unsigned cellsInRow, unsigned cellsInColumn){
 	this->cellsInRow = cellsInRow;
 	this->cellsInColumn = cellsInColumn;
+	this->bordX = this->cellsInRow <= this->cellsInColumn? (scrW-scrH)/2 : (scrW-scrH)/6;
+	this->cellWidth = this->cellHeight = (scrH/(this->cellsInColumn >= this->cellsInRow? this->cellsInColumn: this->cellsInRow))-this->bordY/(this->cellsInRow >= 30 || this->cellsInColumn >= 30? 20 : 8);
 }
 
-void Grid::recalcTargets(comp** l, int curIndexColumn, int curIndexRow, int curTargs) {
+int Grid::getViewedTargets() { return this->viewedTargs; }
+unsigned Grid::getCellHeight() { return this->cellHeight; }
+unsigned Grid::getCellsInRow() { return this->cellsInRow; }
+unsigned Grid::getCellsInColumn() {	return this->cellsInColumn; }
+unsigned Grid::getBord() { return this->bordX; }
+
+
+void Grid::recalcTargets(int curIndexColumn, int curIndexRow, int curTargs) {
 	if(this->viewedTargs == curTargs && curTargs != 0) return;
-	auto c = (*(l + curIndexRow) + curIndexColumn);
+	auto c = (*(this->coords + curIndexRow) + curIndexColumn);
 	if(!c->target) return;
 	this->viewedTargs++;
 }
 
-int Grid::getViewedTargets() { return this->viewedTargs; }
-
-void Grid::isTarget(comp** l, int curIndexColumn, int curIndexRow, int imp, int freq) {
-	if((*(l + curIndexRow) + curIndexColumn)->targetChecker >= 0.9 && (*(l + curIndexRow) + curIndexColumn)->isFound == false) {
+void Grid::isTarget(int curIndexColumn, int curIndexRow, int imp, int freq) {
+	if((*(this->coords + curIndexRow) + curIndexColumn)->targetChecker >= 0.9 && (*(this->coords + curIndexRow) + curIndexColumn)->isFound == false) {
 		cout << "У строці " << curIndexColumn+1 << "," << " та колонці " << curIndexRow+1 << ", знайдено ціль за " << (double)imp/freq << " секунд." << endl;
 	}
 }
 
-Beam::Beam(){}
+//##########################################################################################
 
 void Beam::setValues(unsigned cellH, unsigned bord) {
 	this->x = cellH/2 + bord;
@@ -117,7 +104,7 @@ void Beam::render(unsigned newX, unsigned newY) {
     }
 }
 
-int Beam::move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first) {
+int Beam::move(cell** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first) {
 	auto c = (*(l + curIndexRow) + curIndexColumn);
 
 	render(c->coordX + cellH/2, c->coordY + cellH/2);

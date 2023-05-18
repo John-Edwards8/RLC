@@ -1,6 +1,6 @@
 #include "Window.h"
 
-struct comp{
+struct cell{
 	unsigned coordX;
 	unsigned coordY;
 	bool target;
@@ -10,38 +10,37 @@ struct comp{
 
 class Grid: protected virtual Window {
 private:
-	//cell dimensions
+	//розміри клітини
 	unsigned cellWidth, cellHeight;
 
-	//number of cells
+	//кількість клітин
 	unsigned cellsInRow, cellsInColumn;
 
-	//start coords
+	//стартові координати та відступи
 	unsigned x, y;
-	unsigned bord_x, bord_y;
+	unsigned bordX, bordY;
 
 	int viewedTargs;
 protected:
-	comp** coords;
+	cell** coords;
 public:
-	Grid();
+	~Grid();
 
 	void createCoords();
 
 	void onlyRender();
 	bool markTargets();
 
-	void setBord(unsigned scrW, unsigned scrH);
-	void setCellSize(unsigned scrH);
+	void setValues(unsigned scrW, unsigned scrH, unsigned cellsInRow, unsigned cellsInColumn);
+
+	int getViewedTargets();
 	unsigned getCellHeight();
 	unsigned getCellsInRow();
 	unsigned getCellsInColumn();
 	unsigned getBord();
-	void setCellsCount(unsigned cellsInRow, unsigned cellsInColumn);
 
-	void recalcTargets(comp** l, int curIndexColumn, int curIndexRow, int curTargs);
-	int getViewedTargets();
-	void isTarget(comp** l, int curIndexColumn, int curIndexRow, int imp, int freq);
+	void recalcTargets(int curIndexColumn, int curIndexRow, int curTargs);
+	void isTarget(int curIndexColumn, int curIndexRow, int imp, int freq);
 };
 
 
@@ -50,11 +49,9 @@ private:
 	unsigned x, y;
 	int radius;
 public:
-	Beam();
-
 	void setValues(unsigned cellH, unsigned bord);
 
 	void render(unsigned newX, unsigned newY);
-	int move(comp** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first);
+	int move(cell** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first);
 
 };
