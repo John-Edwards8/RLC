@@ -8,28 +8,24 @@ _Проект радиолокационной станции. Исследуе�
 
 ## Кратко про текущие файлы и взаимосвязи между модулями:
 
-### Prototypes.h:
-
-— Централизованное подключение библиотек
-
 ### Window.h:
 
-— Обработка событий основного окна програмы
-
-### Render.h:
-
+— Создание окна и рендерера SDL
+— Централизованное подключение библиотек
 — Отображение рисуемого изображения
-— Хранение информации о ячейках сетки (координаты, порядковый номер, наличие или отсутствие цели)
 
 ### Objects.h:
 
 — Информация об главных действующих объектах (сетке, луче)
+— Хранение информации о ячейках сетки (координаты, вероятность обнаружения цели, наличие или отсутствие цели, информация о том нашли ли цель)
 — Формирование изображения сетки и луча
-— Движение луча по сетке(?)
+— Вывод сообщений при движении луча по сетке
 
 ### Manager.h:
 
 — Инструмент взаимодействия со всеми классами программы
+— Логика движения луча по сетке
+— Логгирование
 
 ———
 
@@ -39,114 +35,134 @@ _Проект радиолокационной станции. Исследуе�
 
 #### Поля класса:
 
-int SCREEN_WIDTH и int SCREEN_HEIGHT — размеры окна.
+unsigned screenWidth, screenHeight — размеры окна.
 
 SDL_Window* gWindow — окно SDL.
-
-#### Функции класса:
-
-SDL_Window* getWindow() — геттер объекта окна SDL.
-
-Window \_getWindow() — геттер, возвращающий текущий объект окна.
-
-void setSize(int width, int height) — сеттер размеров окна.
-
-int getWindowWidth() и int getWindowHeight() — геттеры размеров окна.
-
-bool init() — проверка "открылось ли окно SDL".
-
-void handleKeys( auto key ) — обработчик нажатия кнопок.
-
-void close() — уничтожение окна SDL, выход из программы.
-
-void initWindow() — инициализация окна SDL.
-
-### Класс Render:
-
-#### Поля класса:
-
-struct GridList — список ячеек.
-
-struct comp — данные конкретной ячейки.
 
 SDL_Renderer* rend — рендерер SDL.
 
 #### Функции класса:
 
+void initWindow() — инициализация окна SDL.
+
+void setValues(unsigned width, unsigned height) — сеттер размеров окна.
+
+bool init() — проверка "открылось ли окно SDL".
+
+void close() — уничтожение окна SDL, выход из программы.
+
 void \_render() — отображение рисуемого изображения.
+
+void reCreate() — повторное создание окна и рендерера.
 
 void \_clear() — очистка экрана перед отрисовкой.
 
-void constr_list(GridList& l) — конструктор пустого списка ячеек.
+### Структура cell:
 
-inline bool chk_empty(GridList l) — проверка списка ячеек на пустоту.
+#### Поля структуры:
 
-int struct_len(GridList& l) — количество ячеек.
+unsigned coordX — координата X.
 
-void comp_in(GridList& l, int X, int Y) — добавление новой "ячейки" в список, задание индексов по ходу наполнения.
+unsigned coordY — координата Y.
+
+bool target — наличие/отсутствие цели.
+
+bool isFound — найдена/не найдена цель.
+
+double targetChecker — вероятность обнаружения.
 
 ### Класс Grid:
 
 #### Поля класса:
 
-int cellWidth, cellHeight — размеры ячеек.
+unsigned cellWidth, cellHeight — размеры ячеек.
 
-unsigned int cellsInRow, cellsInColumn — количество ячеек в строке и столбце.
+unsigned cellsInRow, cellsInColumn — количество ячеек в строке и столбце.
 
-int x, y — координаты ячеек.
+unsigned x, y — координаты ячеек.
 
-int bord_x, bord_y — отступ по координатам.
+unsigned bordX, bordY — отступ по координатам.
 
-GridList coords — список ячеек.
+int viewedTargs — количество ячеек, вернувших положительный ответ.
+
+cell** coords — список ячеек.
 
 #### Функции класса:
 
-void startRender()  — "стартовая" отрисовка сетки; создание списка ячеек.
+~Grid() — перегруженный деструктор; удаляет компоненты сетки.
 
-void onlyRender() — отрисовка сетки с использованием имеющегося списка ячеек.
+void createCoords() — создание координат для всей сетки.
 
-void setBord(int scrW, int scrH) — сеттер отступов по координатам X и Y.
+void onlyRender() — отрисовка сетки с использованием имеющихся ячеек.
 
-void setCellSize(int scrH) — сеттер размеров ячеек.
+void markTargets() — помечает ячейки с целями.
 
-int getCellHeight() и int getBord() — геттеры размеров ячеек и отступа (по X).
+void setValues(unsigned scrW, unsigned scrH, unsigned cellsInRow, unsigned cellsInColumn) — сеттер отступов по координатам X и Y, размеров ячеек, а также их количества.
 
-void setCellsCount(int cellsInRow, int cellsInColumn) — сеттер количества ячеек.
+unsigned getCellHeight(), getBord() — геттеры размеров ячеек и отступа (по X).
 
-GridList getGridCoords() — геттер списка ячеек.
+unsigned getCellsInRow(), getCellsInColumn() — геттеры количества ячеек.
+
+void recalcTargets(int curIndexColumn, int curIndexRow, int curTargs) — пересчитывает количество целей.
+
+void isTarget(int curIndexColumn, int curIndexRow, int imp, int freq) — проверяет есть ли в клетке цель.
 
 ### Класс Beam:
 
 #### Поля класса:
 
-int x, y — координаты луча.
+unsigned x, y — координаты луча.
 
 int radius — радиус луча.
 
 #### Функции класса:
 
-void setValues(int cellH, int bord) — сеттер величин луча (координат начала отрисовки, радиуса).
+void setValues(unsigned cellH, unsigned bord) — сеттер величин луча (координат начала отрисовки, радиуса).
 
-void startRender() — "стартовая" отрисовка луча.
+void render(unsigned newX, unsigned newY) — отрисовка луча по координатам.
 
-void render(int newX, int newY) — отрисовка луча по координатам.
-
-void move(Render::GridList l, int curIndex, int cellH) — перемещение луча.
+void move(cell** l, int curIndexColumn, int curIndexRow, unsigned cellH, int impCnt, int dImpCnt, bool first) — перемещение луча.
 
 ### Класс Manager:
 
+#### Поля класса:
+
+bool done — найдены ли все цели.
+
+bool logging — начался ли процесс логгирования.
+
+bool first — прошел ли первый период обзора.
+
+int impForCell — кол-во импульсов для клетки без цели.
+
+int doubleImpForCell — кол-во импульсов для клетки с целью.
+
+int targets — кол-во целей которые найдены на текущий момент.
+
+int allImp — все использованные импульсы.
+
 #### Функции класса:
 
-Window getWindow() — геттер, возвращающий текущий объект окна (см. Window::\_getWindow()).
+bool init() — проверка инициализации окна SDL.
 
-void start() — включение "стартовых" отрисовок.
+void close() — закрытие SDL.
 
-void setStartValues(int screenWidth, int screenHeight) — задание "стартовых" значений.
+void \_render() — рендеринг отрисованого изображения.
 
-void moveBeam() — перемещение и отрисовка луча.
+void initGrid() — создание сетки.
+
+void renderGrid() — отрисовка сетки.
+
+void mark() — помечает цели.
+
+void log(int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt) — логгирование.
+
+void setValues(int& fr, int& impulse) — задание значений окна, сетки, количества и частоты импульсов.
+
+void moveBeam(int impCnt, int freq) — перемещение и отрисовка луча.
 
 ———
 
 ### Текущее наследование классов:
 
-Window -> Render -> (Grid,Beam) -> Manager
+Window -> (Grid,Beam) -> Manager
