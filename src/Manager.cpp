@@ -24,8 +24,22 @@ void Manager::moveBeam(int impCnt, int freq) {
 	int clsInCol = Grid::getCellsInColumn();
 
 	this->targets = Grid::getViewedTargets();
-	if( this->targets != 0 ) { this->doubleImpForCell = this->impForCell*2; this->first = false; }
-	else if( this->targets == 0 && this->first == false ) { this->done = true; return; }
+	if (this->targets != 0) {
+		if (this->targets * this->impForCell * 2 <= impCnt) {
+			this->doubleImpForCell = this->impForCell * 2;
+		}
+		if (this->doubleImpForCell) {
+			this->doubleImpForCell = this->doubleImpForCell;
+		}
+		else {
+			this->doubleImpForCell = this->impForCell;
+		}
+		this->first = false;
+	} else if( this->targets == 0 && this->first == false ) {
+		this->done = true;
+		return;
+	}
+	
 	this->impForCell = (impCnt-this->doubleImpForCell*this->targets)/(clsInRow*clsInCol-this->targets);
 
 	for (int i = 0; i < clsInCol; i++)	{
