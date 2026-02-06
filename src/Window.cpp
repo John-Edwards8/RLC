@@ -1,57 +1,70 @@
 #include "../headers/Window.h"
 
-void Window::initWindow() {
-	//Initialize SDL
-	if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
+void Window::init() {
+	if(SDL_Init( SDL_INIT_VIDEO ) < 0) {
 		cout << "SDL не зміг ініціалізуватися! Помилка SDL: " << SDL_GetError() << endl;
 		exit(1);
 	}
-	else {
-		//Create window
-		SDL_CreateWindowAndRenderer(screenWidth, screenHeight, 0, &gWindow, &rend);
-		SDL_HideWindow( this->gWindow );
+
+	gWindow = SDL_CreateWindow(
+		"RLC",
+		screenWidth,
+		screenHeight,
+		SDL_WINDOW_RESIZABLE
+	);
+
+	if (!gWindow) {
+		cout << "Не вдалося створити вікно: " << SDL_GetError() << endl;
+		exit(1);
+	}
+
+	rend = SDL_CreateRenderer(gWindow, nullptr);
+
+	if (!rend) {
+		cout << "Не вдалося створити renderer: " << SDL_GetError() << endl;
+		exit(1);
 	}
 }
 
-Window::Window(){ initWindow(); }
+Window::Window() {
+	screenWidth = 800;
+	screenHeight = 600;
+	init();
+}
 
 void Window::setValues(unsigned width, unsigned height) {
-	this->screenWidth = width;
-	this->screenHeight = height;
-	SDL_DestroyWindow( this->gWindow );
-	this->gWindow = SDL_CreateWindow( "RLC", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	screenWidth = width;
+	screenHeight = height;
+
+	SDL_SetWindowSize(gWindow, screenWidth, screenHeight);
 }
 
+void Window::close() {
+	if (rend) {
+		SDL_DestroyRenderer(rend);
+		rend = nullptr;
+	}
 
-bool Window::init(){
-	bool success = SDL_Init( SDL_INIT_VIDEO ) < 0? false : true;
+	if (gWindow) {
+		SDL_DestroyWindow(gWindow);
+		gWindow = nullptr;
+	}
 
-	if( !success ) { cout << "SDL не зміг ініціалізуватися! Помилка SDL: " << SDL_GetError() << endl; }
-
-	return success;
-}
-
-void Window::close() { 
-	//Знищити об'єкт вікна	
-	SDL_DestroyWindow( this->gWindow );
-	this->gWindow = NULL;
-	SDL_DestroyRenderer( this->rend );
-	this->rend = NULL;
-
-	//Вийти з підсистем SDL
 	SDL_Quit();
 }
 
 void Window::reCreate() {
-	SDL_DestroyRenderer( this->rend );
-	this->rend = SDL_CreateRenderer( this->gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
+	SDL_DestroyRenderer(rend);
+	rend = SDL_CreateRenderer(gWindow, nullptr);
 }
 
-void Window::_render() { SDL_RenderPresent( this->rend ); }
+void Window::_render() {
+	SDL_RenderPresent(rend);
+}
 
 //зафарбувати білим кольором
 void Window::_clear() {
-	SDL_SetRenderDrawColor( this->rend, 0xFF, 0xFF, 0xFF, 0xFF );
-	SDL_RenderClear( this->rend );
+	SDL_SetRenderDrawColor(this->rend, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(this->rend);
 }
 

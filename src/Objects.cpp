@@ -33,8 +33,8 @@ void Grid::onlyRender() {
 		for (int j = 0; j < this->cellsInRow; j++)	{
 			this->x = (*(coords+j)+i)->coordX;
 			this->y = (*(coords+j)+i)->coordY;
-			SDL_Rect outlineRect = { this->x, this->y, this->cellWidth, this->cellHeight  };
-			SDL_RenderDrawRect( this->rend, &outlineRect );
+			SDL_FRect outlineRect = { this->x, this->y, this->cellWidth, this->cellHeight  };
+			SDL_RenderRect( this->rend, &outlineRect );
 		}
 	}
 }
@@ -48,7 +48,7 @@ bool Grid::markTargets() {
 				isT = true;
 				this->x = (*(coords+j)+i)->coordX;
 				this->y = (*(coords+j)+i)->coordY;
-				SDL_Rect outlineRect = { this->x+5, this->y+5, this->cellWidth-10, this->cellHeight-10  };
+				SDL_FRect outlineRect = { this->x+5, this->y+5, this->cellWidth-10, this->cellHeight-10  };
 				SDL_RenderFillRect( this->rend, &outlineRect );
 			}
 		}
@@ -98,7 +98,7 @@ void Beam::render(unsigned newX, unsigned newY) {
             int dx = this->radius - w;
             int dy = this->radius - h;
             if ((dx*dx + dy*dy) <= (this->radius * this->radius)) {
-                SDL_RenderDrawPoint(this->rend, newX + dx, newY + dy);
+                SDL_RenderPoint(this->rend, newX + dx, newY + dy);
             }
         }
     }

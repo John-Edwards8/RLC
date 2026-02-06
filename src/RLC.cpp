@@ -1,4 +1,4 @@
-#include "headers/Manager.h"
+#include "../headers/Manager.h"
 
 
 int main( int argc, char* args[] ) {
@@ -14,7 +14,7 @@ int main( int argc, char* args[] ) {
 			cout << ex.what() << endl;
 			a = true;
 		}
-	}while(a);
+	} while(a);
 	
 	//ініціалізація сітки та вікна
 	mainMan->initGrid();
@@ -41,10 +41,10 @@ int main( int argc, char* args[] ) {
 			
 			//Оброблюємо події з черги
 			while( SDL_PollEvent( &e ) != 0 ) {
-				if( e.type == SDL_QUIT ) {
+				if( e.type == SDL_EVENT_QUIT) {
 					quit = true;
-				} else if (e.type == SDL_KEYDOWN) {
-					switch( e.key.keysym.scancode ) {
+				} else if (e.type == SDL_EVENT_KEY_DOWN) {
+					switch( e.key.scancode ) {
 					case SDL_SCANCODE_SPACE:
 						tik = tik? false: true;
 						break;

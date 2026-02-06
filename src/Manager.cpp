@@ -1,6 +1,9 @@
 #include "../headers/Manager.h"
 
-bool Manager::init() { return Window::init(); }
+bool Manager::init() {
+	Window::init();
+	return true;
+}
 void Manager::close() { Window::close(); }
 void Manager::_render() { if(!this->done) Window::_render(); }
 

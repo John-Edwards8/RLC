@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -15,8 +15,6 @@ private:
 	//Об'єкт вікна SDL
 	SDL_Window* gWindow;
 
-	void initWindow();
-
 protected:
 	//Об'єкт рендера SDL
 	SDL_Renderer* rend;
@@ -25,7 +23,7 @@ public:
 
 	void setValues(unsigned width, unsigned height);
 
-	bool init();
+	void init();
 	void close();
 	void _render();
 
