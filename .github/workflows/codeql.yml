@@ -1,0 +1,128 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  analyze:
+    name: Analyze (c-cpp)
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    steps:
+      # ------------------------------
+      # 1. Checkout repository
+      # ------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------
+      # 2. Initialize CodeQL
+      # ------------------------------
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: c-cpp
+          queries: +security-and-quality
+          config-file: .github/codeql/codeql-config.yml
+
+      # ------------------------------
+      # 3. Install system dependencies
+      # ------------------------------
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            git \
+            libx11-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libwayland-dev libwayland-egl-backend-dev libxkbcommon-dev \
+            libgl1-mesa-dev
+
+      # ------------------------------
+      # 4. Cache SDL3 install
+      # ------------------------------
+      - name: Cache SDL3 install
+        uses: actions/cache@v3
+        with:
+          path: SDL3/install
+          key: SDL3-install-${{ runner.os }}-${{ hashFiles('SDL3/**') }}
+          restore-keys: SDL3-install-${{ runner.os }}-
+
+      # ------------------------------
+      # 5. Build minimal SDL3
+      # ------------------------------
+      - name: Build SDL3
+        run: |
+          git clone --depth 1 https://github.com/libsdl-org/SDL.git SDL3
+          cmake -S SDL3 -B SDL3/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSDL_SHARED=OFF \
+            -DSDL_STATIC=ON \
+            -DSDL_TEST=OFF \
+            -DSDL_EXAMPLES=OFF \
+            -DSDL_DYNAPI=OFF \
+            -DSDL_VULKAN=OFF \
+            -DSDL_OPENXR=OFF \
+            -DSDL_OPENVR=OFF \
+            -DSDL_VIDEO=ON \
+            -DSDL_RENDER=ON \
+            -DSDL_OFFSCREEN=OFF \
+            -DSDL_AUDIO=OFF \
+            -DSDL_X11=OFF \
+            -DSDL_X11_XSCRNSAVER=OFF \
+            -DSDL_X11_TEST=OFF \
+            -DSDL_WAYLAND=ON \
+            -DSDL_PULSEAUDIO=OFF \
+            -DSDL_PIPEWIRE=OFF \
+            -DSDL_CAMERA=OFF \
+            -DSDL_SENSOR=OFF \
+            -DSDL_HAPTIC=OFF \
+            -DSDL_JACK=OFF \
+            -DSDL_JOYSTICK=OFF \
+            -DSDL_POWER=ON \
+            -DCMAKE_INSTALL_PREFIX=$PWD/SDL3/install
+          cmake --build SDL3/build --parallel 2
+          cmake --install SDL3/build
+
+      # ------------------------------
+      # 6. Cache project build
+      # ------------------------------
+      - name: Cache project build
+        uses: actions/cache@v3
+        with:
+          path: build
+          key: build-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: build-${{ runner.os }}-
+
+      # ------------------------------
+      # 7. Build your project
+      # ------------------------------
+      - name: Build project
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSDL_X11_XSCRNSAVER=OFF \
+            -DSDL_X11_XTEST=OFF \
+            -DCMAKE_PREFIX_PATH=$PWD/SDL3/install
+          cmake --build build --parallel 2
+
+      # ------------------------------
+      # 8. Perform CodeQL analysis
+      # ------------------------------
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
