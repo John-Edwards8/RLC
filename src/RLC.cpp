@@ -1,65 +1,80 @@
 #include "../headers/Manager.h"
 
-
 int main( int argc, char* args[] ) {
-	Manager* mainMan = new Manager();
-	bool a;
-	int frequency;
-	int impulseCount;
+	int w, h, r, c, frequency = 100, impulse = 10000;
+	/*
 	do{
 		a = false;
 		try{
-			mainMan->setValues(static_cast<int&>(frequency), static_cast<int&>(impulseCount));
-		}catch(const invalid_argument &ex){
-			cout << ex.what() << endl;
+			
+			std::cout << "Enter the window width:" << std::endl;
+			if (!(std::cin >> w)) {
+				std::cin.clear();
+				while (std::cin.get() != '\n') continue;
+				throw std::invalid_argument("The width entered is incorrect!");
+			}
+			std::cout << "Enter the window height:" << std::endl;
+			if (!(std::cin >> h)) {
+				std::cin.clear();
+				while (std::cin.get() != '\n') continue;
+				throw std::invalid_argument("Incorrect height entered!");
+			}
+			std::cout << "Enter the grid cell values ​​(how many in a row and in a column):" << std::endl;
+			if (!(std::cin >> r >> c)) {
+				std::cin.clear();
+				while (std::cin.get() != '\n') continue;
+				throw std::invalid_argument("Incorrect values ​​entered!");
+			}
+			
+			std::cout << "Enter the total number of pulses:" << std::endl;
+			if (!(std::cin >> impulse)) {
+				std::cin.clear();
+				while (std::cin.get() != '\n') continue;
+				throw std::invalid_argument("Incorrect quantity entered!");
+			}
+			std::cout << "Enter the pulse frequency:" << std::endl;
+			if (!(std::cin >> frequency)) {
+				std::cin.clear();
+				while (std::cin.get() != '\n') continue;
+				throw std::invalid_argument("Incorrect frequency entered!");
+			}
+		}catch(const std::invalid_argument &ex){
+			std::cout << ex.what() << std::endl;
 			a = true;
 		}
 	} while(a);
-	
-	//ініціалізація сітки та вікна
-	mainMan->initGrid();
-	if( !mainMan->init() ) {
-		cout << "Невдала ініціалізація!" << endl; 
-	} else {
-		//Прапорці
-		bool quit = false;	//прапор виходу
-		bool tik = false;	//прапор початку руху променя
-		bool start = false; //прапор "першого циклу програми"
+	TODO: UI via Dear ImGui*/
 
-		//Оброблювач подій
-		SDL_Event e;
+	std::unique_ptr<Manager> mainMan = std::make_unique<Manager>(impulse, frequency, 1280, 720, 5, 5);
 
-		//Поки программа працює
-		while( !quit ) {
-			if (start) {
-				mainMan->renderGrid();
-				mainMan->_render();
-			}
-			if (tik){ 
-				mainMan->moveBeam(impulseCount, frequency);
-			}
-			
-			//Оброблюємо події з черги
-			while( SDL_PollEvent( &e ) != 0 ) {
-				if( e.type == SDL_EVENT_QUIT) {
-					quit = true;
-				} else if (e.type == SDL_EVENT_KEY_DOWN) {
-					switch( e.key.scancode ) {
-					case SDL_SCANCODE_SPACE:
-						tik = tik? false: true;
-						break;
-					case SDL_SCANCODE_ESCAPE:
-						mainMan->close();
-						exit(1);
-					}
-			    }	
-			}
-			start = true;
+	bool quit = false;
+	bool paused = true;
+
+	SDL_Event e;
+
+	while (!quit) {
+		if (!paused && !mainMan->finished()) {
+			mainMan->step();
+			SDL_Delay(50);
 		}
-	}
 
-	//Звільнити ресурси та закрити SDL
-	mainMan->close();
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_EVENT_QUIT) {
+				quit = true;
+			}
+			else if (e.type == SDL_EVENT_KEY_DOWN) {
+				switch (e.key.scancode) {
+				case SDL_SCANCODE_SPACE:
+					paused = paused ? false : true;
+					break;
+				case SDL_SCANCODE_ESCAPE:
+					exit(1);
+				}
+			}			
+		}
+
+		if (mainMan->finished()) paused = paused ? false : true;
+	}
 
 	return 0;
 }

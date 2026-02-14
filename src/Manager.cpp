@@ -1,79 +1,127 @@
 #include "../headers/Manager.h"
 
-bool Manager::init() {
-	Window::init();
-	return true;
-}
-void Manager::close() { Window::close(); }
-void Manager::_render() { if(!this->done) Window::_render(); }
+Manager::Manager(int impulse, int frequency, int w, int h, int r, int c) :
+	_display(std::make_unique<Render::Display>(w, h)),
+	_grid(std::make_unique<Objects::Grid>(r, c)),
+	_solver(std::make_unique<Core::AdaptiveSolver>(r, c))
+{
+	_rows = r;
+	_cols = c;
 
-void Manager::initGrid() { Grid::createCoords(); }
-void Manager::renderGrid() {
-	if(!this->done) {
-		Window::_clear();
-		Grid::onlyRender();
+	int maxDim = std::max(r, c);
+	_cellSize = (h * 9 / 10) / maxDim;
+	_borderX = (w - _cellSize * c) / 2;
+	_borderY = (h - _cellSize * r) / 2;
+
+	_sceneData.rows = r;
+	_sceneData.cols = c;
+	_sceneData.cellSize = _cellSize;
+	_sceneData.borderX = _borderX;
+	_sceneData.borderY = _borderY;
+	_sceneData.beam.radius = _cellSize / 4.0f;
+	_sceneData.beam.x = _borderX + _cellSize / 2.0f;
+	_sceneData.beam.y = _borderY + _cellSize / 2.0f;
+	_sceneData.beamActive = false;
+
+	updateScene();
+
+	render();	
+}
+
+void Manager::updateScene() {
+	_sceneData.cells.clear();
+	_sceneData.cells.reserve(_rows * _cols);
+
+	for (int row = 0; row < _rows; ++row) {
+		for (int col = 0; col < _cols; ++col) {
+			const auto& gridCell = _grid->coords[row][col];
+
+			Render::CellRenderInfo cellInfo;
+			cellInfo.x = static_cast<float>(_borderX + col * _cellSize);
+			cellInfo.y = static_cast<float>(_borderY + row * _cellSize);
+			cellInfo.size = static_cast<float>(_cellSize);
+			cellInfo.isTarget = gridCell.realTarget;
+			cellInfo.confidence = gridCell.belief;
+
+			_sceneData.cells.push_back(cellInfo);
+		}
 	}
 }
 
-void Manager::mark() {
-	renderGrid();
-	this->done = Grid::markTargets();
-	Window::_render();
-}
+void Manager::step() {
+	_sceneData.beamActive = true;
+	auto [row, col] = _solver->chooseCell();
+	auto& cell = _grid->coords[row][col];
 
-void Manager::moveBeam(int impCnt, int freq) {
-	if(this->done) { return; }
-	int clsInRow = Grid::getCellsInRow();
-	int clsInCol = Grid::getCellsInColumn();
-
-	this->targets = Grid::getViewedTargets();
-	if (this->targets != 0) {
-		if (this->targets * this->impForCell * 2 <= impCnt) {
-			this->doubleImpForCell = this->impForCell * 2;
-		}
-		if (this->doubleImpForCell) {
-			this->doubleImpForCell = this->doubleImpForCell;
-		}
-		else {
-			this->doubleImpForCell = this->impForCell;
-		}
-		this->first = false;
-	} else if( this->targets == 0 && this->first == false ) {
-		this->done = true;
+	if (cell.belief >= 0.9) {
+		_solver->onSignalResult(row, col, 0.0);
+		std::cout << "Already confident about cell (" << row + 1 << "," << col + 1 << "), skipping measurement." << std::endl;
 		return;
 	}
-	
-	this->impForCell = (impCnt-this->doubleImpForCell*this->targets)/(clsInRow*clsInCol-this->targets);
 
-	for (int i = 0; i < clsInCol; i++)	{
-		for (int j = 0; j < clsInRow; j++)	{
-			renderGrid();
-			this->allImp += Beam::move(this->coords, i, j, Grid::getCellHeight(), this->impForCell, this->doubleImpForCell, this->first);
-			Grid::isTarget(i, j, this->allImp, freq);
-			Grid::recalcTargets(i, j, this->targets);
-			log(i, j, this->allImp, freq, this->impForCell, this->doubleImpForCell);
-			Window::_render();
-			Window::_clear();
-			SDL_Delay(250);
-		}
+	_sceneData.beam.x = _borderX + col * _cellSize + _cellSize / 2.0f;
+	_sceneData.beam.y = _borderY + row * _cellSize + _cellSize / 2.0f;
+
+	double signal = _grid->measure(row, col);
+
+	_solver->onSignalResult(row, col, signal);
+	
+	if (signal > 0.5) {
+		cell.belief = std::min(1.0, cell.belief + (signal - 0.3) * 0.5);
 	}
-	mark();
-	if( this->targets == 0 ) { this->first = false; }
+	else {
+		cell.belief = std::max(0.0, cell.belief - 0.1);
+	}
+
+	std::cout << "Cell (" << row + 1 << "," << col + 1 << ") signal="
+		<< signal << " belief=" << cell.belief << std::endl;
+
+	updateScene();
+
+	render();
+
+	if (_solver->finished()) {
+		_sceneData.beamActive = false;
+		std::cout << "\n=== SEARCH COMPLETE ===" << std::endl;
+
+		int foundTargets = 0;
+		for (int r = 0; r < _rows; ++r) {
+			for (int c = 0; c < _cols; ++c) {
+				if (_grid->coords[r][c].belief >= 0.9) {
+					foundTargets++;
+					bool correct = _grid->coords[r][c].realTarget;
+					std::cout << "Found target at (" << r + 1 << "," << c + 1 << ") - "
+						<< (correct ? "CORRECT" : "FALSE POSITIVE") << std::endl;
+				}
+			}
+		}
+		std::cout << "Total found: " << foundTargets << " of " << _grid->getTargetCount() << std::endl;
+
+		return;
+	}
 }
 
+void Manager::render() {
+	_display->getRenderer()->clear();
+	_display->getRenderer()->render(_sceneData);
+	_display->getRenderer()->present();
+}
+
+/*
+* TODO: Move logging to a separate class and make it more structured (e.g. JSON or CSV) for easier analysis.
 void Manager::log(int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt){
-	auto c = (*(this->coords + cJ) + cI);
+	auto c = (*(coords + cJ) + cI);
 	ofstream file("logs.txt", ios::app);
-	if(this->first && !this->logging) {
+	if(first && !logging) {
 		time_t tt;
 	    struct tm* ti;
 	    time(&tt);
 	    ti = localtime(&tt);
 	  
 		file << endl << asctime(ti) << endl;
-		this->logging = true;
+		logging = true;
 	}
-	if(!this->first) { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << (!c->target? impCnt : dImpCnt) << " імпульсів." << endl; }
+	if(!first) { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << (!c->target? impCnt : dImpCnt) << " імпульсів." << endl; }
 	else { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << impCnt << " імпульсів." << endl; }
 
 	if (c->target) { file << "Отримано позитивну відповідь." << endl; }
@@ -83,41 +131,4 @@ void Manager::log(int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt){
 	}
 	file.close();
 }
-
-void Manager::setValues(int& fr, int& impulse) {
-	int w, h, r, c;
-	cout << "Введіть ширину вікна:" << endl;
-	if (!(cin >> w)) {
-		cin.clear();
-		while (cin.get() != '\n') continue;
-		throw invalid_argument("Неправильно введена ширина!");
-	}
-	cout << "Введіть висоту вікна:" << endl;
-	if (!(cin >> h)) {
-		cin.clear();
-		while (cin.get() != '\n') continue;
-		throw invalid_argument("Неправильно введена висота!");
-	}
-	cout << "Введіть значення клітин сітки (скільки в строці та в колонці):" << endl;
-	if (!(cin >> r >> c)) {
-		cin.clear();
-		while (cin.get() != '\n') continue;
-		throw invalid_argument("Неправильно введені значення!");
-	}
-	cout << "Введіть загальну кількість імпульсів:" << endl;
-	if (!(cin >> impulse)) {
-		cin.clear();
-		while (cin.get() != '\n') continue;
-		throw invalid_argument("Неправильно введена кількість!");
-	}
-	cout << "Введіть частоту імпульсів:" << endl;
-	if (!(cin >> fr)) {
-		cin.clear();
-		while (cin.get() != '\n') continue;
-		throw invalid_argument("Неправильно введена частота!");
-	}
-
-	Window::setValues(abs(w), abs(h)); Window::reCreate();
-	Grid::setValues(abs(w), abs(h), abs(r), abs(c));
-	Beam::setValues(Grid::getCellHeight(),Grid::getBord());
-}
+*/
