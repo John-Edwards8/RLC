@@ -1,7 +1,13 @@
 #pragma once
+#include "Objects.h"
 #include <utility>
 
 namespace Core {
+	enum class SolverType {
+		SEQUENTIAL,
+		MAX_ELEMENT
+	};
+
 	class ISolver {
 	public:
 		virtual std::pair<int, int> chooseCell() = 0;
@@ -11,5 +17,10 @@ namespace Core {
 		virtual bool finished() const = 0;
 
 		virtual ~ISolver() = default;
+
+		static double gauss(double x, double mu, double sig) {
+			return (1.0 / (sig * 2.5066282746)) *
+				std::exp(-0.5 * ((x - mu) / sig) * ((x - mu) / sig));
+		}
 	};
 }

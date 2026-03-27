@@ -1,12 +1,24 @@
 #include "../headers/Manager.h"
 
-Manager::Manager(int impulse, int frequency, int w, int h, int r, int c) :
+Manager::Manager(int impulse, int frequency,
+				 int w, int h, int r, int c,
+				 Core::SolverType type) :
+	_rows(r), _cols(c), _solverType(type),
 	_display(std::make_unique<Render::Display>(w, h)),
-	_grid(std::make_unique<Objects::Grid>(r, c)),
-	_solver(std::make_unique<Core::AdaptiveSolver>(r, c))
+	_grid(std::make_unique<Objects::Grid>(r, c))
 {
-	_rows = r;
-	_cols = c;
+	switch (type) {
+	case Core::SolverType::SEQUENTIAL:
+		_solver = std::make_unique<Core::SequentialSolver>(r, c, impulse, _grid->model);
+		break;
+	case Core::SolverType::MAX_ELEMENT:
+		_solver = std::make_unique<Core::MaxElementSolver>(
+			r, c, impulse,
+			_grid->model.singlePulseDetectProb,
+			_grid->model
+		);
+		break;
+	}
 
 	int maxDim = std::max(r, c);
 	_cellSize = (h * 9 / 10) / maxDim;
@@ -48,6 +60,24 @@ void Manager::updateScene() {
 	}
 }
 
+// Байесовское обновление
+void Manager::updateBelief(Objects::Cell& cell, double signal) {
+	double priorTarget = (cell.belief > 0.0) ? cell.belief : 0.1;
+	double priorNoTarget = 1.0 - priorTarget;
+
+	auto gauss = [](double x, double mu, double sig) {
+		return (1.0 / (sig * 2.5066282746)) * std::exp(-0.5 * ((x - mu) / sig) * ((x - mu) / sig));
+	};
+
+	double likeTarget   = gauss(signal, _grid->model.muTarget, _grid->model.sigmaTarget);
+	double likeNoTarget = gauss(signal, _grid->model.muNoise, _grid->model.sigmaNoise);
+
+	double evidence = likeTarget * priorTarget + likeNoTarget * priorNoTarget;
+	if (evidence < 1e-12) return;
+
+	cell.belief = (likeTarget * priorTarget) / evidence;
+}
+
 void Manager::step() {
 	_sceneData.beamActive = true;
 	auto [row, col] = _solver->chooseCell();
@@ -65,16 +95,11 @@ void Manager::step() {
 	double signal = _grid->measure(row, col);
 
 	_solver->onSignalResult(row, col, signal);
-	
-	if (signal > 0.5) {
-		cell.belief = std::min(1.0, cell.belief + (signal - 0.3) * 0.5);
-	}
-	else {
-		cell.belief = std::max(0.0, cell.belief - 0.1);
-	}
 
-	std::cout << "Cell (" << row + 1 << "," << col + 1 << ") signal="
-		<< signal << " belief=" << cell.belief << std::endl;
+	cell.impulsesSent++;
+	cell.detectProb = _grid->computeDetectionProb(cell.impulsesSent);
+	
+	updateBelief(cell, signal);
 
 	updateScene();
 
