@@ -15,18 +15,6 @@ namespace Render {
 		virtual ~Renderer() = default;
 	};
 
-	class OpenGLRenderer : public Renderer {
-		SDL_GLContext _glContext;
-	public:
-		OpenGLRenderer(SDL_Window* gWindow);
-
-		void render(const SceneData& scene) override;
-		void present() override;
-		void clear();
-
-		~OpenGLRenderer();
-	};
-
 	class StandardRenderer : public Renderer {
 		SDL_Renderer* _rend;
 	public:

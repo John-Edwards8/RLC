@@ -13,7 +13,7 @@ namespace Render {
 			"RLC",
 			width,
 			height,
-			SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALWAYS_ON_TOP
+			SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALWAYS_ON_TOP
 		);
 
 		if (!_window) {
@@ -110,35 +110,4 @@ namespace Render {
 		SDL_SetRenderDrawColor(_rend, 0xFF, 0xFF, 0xFF, 0xFF); // White background
 		SDL_RenderClear(_rend);
 	}
-
-	OpenGLRenderer::OpenGLRenderer(SDL_Window* gWindow) {
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-		_glContext = SDL_GL_CreateContext(gWindow);
-		if (!_glContext) {
-			std::cout << "Failed to create OpenGL context: " << SDL_GetError() << std::endl;
-			exit(1);
-		}
-
-		SDL_GL_MakeCurrent(gWindow, _glContext);
-	}
-
-	void OpenGLRenderer::render(const SceneData& scene) {
-		// TODO : Implement OpenGL rendering logic here, similar to StandardRenderer but using OpenGL calls
-	}
-
-
-	void OpenGLRenderer::present() {
-		SDL_GL_SwapWindow(SDL_GL_GetCurrentWindow());
-	}
-
-	void OpenGLRenderer::clear() {
-		// TODO : Implement OpenGL clear logic here, e.g., glClearColor and glClear
-	}
-
-	OpenGLRenderer::~OpenGLRenderer() {
-		SDL_GL_DestroyContext(_glContext);
-	}	
 }
