@@ -25,6 +25,8 @@ namespace Core {
 		
 		std::pair<int, int> chooseCell() override;
 		void onSignalResult(int row, int col, double signal) override;
+		double getBelief(int r, int c) override { return _belief[r][c]; }
+		int getTotalImpulses() const override	{ return _totalSteps; }
 		bool finished() const override;
 
 		bool cellDecided(int r, int c) const {

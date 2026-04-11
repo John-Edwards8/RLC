@@ -16,7 +16,6 @@ namespace Objects {
 		for (int i = 0; i < cellsInRow; i++) {
 			for (int j = 0; j < cellsInColumn; j++) {
 				coords[i][j].realTarget = dist(_gen);
-				coords[i][j].belief = 0.0;
 				if (coords[i][j].realTarget) {
 					targetCount++;
 					std::cout << "Target is realy in (" << i + 1 << "," <<j + 1 << ")." << std::endl;

@@ -6,6 +6,12 @@
 #include "Core/SequentialSolver.h"
 #include <memory>
 
+struct DetectionEvent {
+	int row, col;
+	int impulsesAtDetection;
+	bool isCorrect;
+};
+
 class Manager {
 	std::unique_ptr<Render::Display> _display;
 	std::unique_ptr<Objects::Grid> _grid;
@@ -18,7 +24,8 @@ class Manager {
 	int _cellSize;
 	int _borderX, _borderY;
 
-	void updateBelief(Objects::Cell& cell, double signal);
+	std::vector<DetectionEvent> _detections;
+	std::vector<bool> _alreadyDetected;
 public:
 	Manager(int impulse, int frequency,
 			int w = 800, int h = 600, int r = 5, int c = 5,

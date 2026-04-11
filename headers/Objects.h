@@ -4,18 +4,17 @@
 
 namespace Objects {
 	struct SensorModel {
-		double muTarget    = 0.6;
-		double sigmaTarget = 0.3;
+		double muTarget    = 0.65;
+		double sigmaTarget = 0.25;
 
-		double muNoise     = 0.22;
-		double sigmaNoise  = 0.22;
+		double muNoise     = 0.35;
+		double sigmaNoise  = 0.25;
 
-		double singlePulseDetectProb = 0.5; // вероятность обнаружения за 1 импульс
+		double singlePulseDetectProb = 0.3; // вероятность обнаружения за 1 импульс
 	};
 
 	struct Cell {
 		bool   realTarget;
-		double belief = 0.0;
 		int    impulsesSent = 0; // n_i 
 		double detectProb = 0.0; // P_i(n_i) 
 	};

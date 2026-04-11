@@ -5,7 +5,8 @@ Manager::Manager(int impulse, int frequency,
 				 Core::SolverType type) :
 	_rows(r), _cols(c), _solverType(type),
 	_display(std::make_unique<Render::Display>(w, h)),
-	_grid(std::make_unique<Objects::Grid>(r, c))
+	_grid(std::make_unique<Objects::Grid>(r, c)),
+	_alreadyDetected(r* c, false)
 {
 	switch (type) {
 	case Core::SolverType::SEQUENTIAL:
@@ -53,29 +54,10 @@ void Manager::updateScene() {
 			cellInfo.y = static_cast<float>(_borderY + row * _cellSize);
 			cellInfo.size = static_cast<float>(_cellSize);
 			cellInfo.isTarget = gridCell.realTarget;
-			cellInfo.confidence = gridCell.belief;
-
+			cellInfo.confidence = _solver->getBelief(row,col);
 			_sceneData.cells.push_back(cellInfo);
 		}
 	}
-}
-
-// Байесовское обновление
-void Manager::updateBelief(Objects::Cell& cell, double signal) {
-	double priorTarget = (cell.belief > 0.0) ? cell.belief : 0.1;
-	double priorNoTarget = 1.0 - priorTarget;
-
-	auto gauss = [](double x, double mu, double sig) {
-		return (1.0 / (sig * 2.5066282746)) * std::exp(-0.5 * ((x - mu) / sig) * ((x - mu) / sig));
-	};
-
-	double likeTarget   = gauss(signal, _grid->model.muTarget, _grid->model.sigmaTarget);
-	double likeNoTarget = gauss(signal, _grid->model.muNoise, _grid->model.sigmaNoise);
-
-	double evidence = likeTarget * priorTarget + likeNoTarget * priorNoTarget;
-	if (evidence < 1e-12) return;
-
-	cell.belief = (likeTarget * priorTarget) / evidence;
 }
 
 void Manager::step() {
@@ -83,7 +65,7 @@ void Manager::step() {
 	auto [row, col] = _solver->chooseCell();
 	auto& cell = _grid->coords[row][col];
 
-	if (cell.belief >= 0.9) {
+	if (_solver->getBelief(row, col) >= 0.9) {
 		_solver->onSignalResult(row, col, 0.0);
 		std::cout << "Already confident about cell (" << row + 1 << "," << col + 1 << "), skipping measurement." << std::endl;
 		return;
@@ -99,7 +81,12 @@ void Manager::step() {
 	cell.impulsesSent++;
 	cell.detectProb = _grid->computeDetectionProb(cell.impulsesSent);
 	
-	updateBelief(cell, signal);
+	if (_solver->getBelief(row, col) >= 0.9 && !_alreadyDetected[row * _cols + col]) {
+		_alreadyDetected[row * _cols + col] = true;
+		_detections.push_back({ row, col, _solver->getTotalImpulses(), _grid->coords[row][col].realTarget });
+		std::cout << "TARGET DETECTED at (" << row + 1 << "," << col + 1
+			<< ") after " << _solver->getTotalImpulses() << " impulses\n";
+	}
 
 	updateScene();
 
@@ -109,18 +96,15 @@ void Manager::step() {
 		_sceneData.beamActive = false;
 		std::cout << "\n=== SEARCH COMPLETE ===" << std::endl;
 
-		int foundTargets = 0;
-		for (int r = 0; r < _rows; ++r) {
-			for (int c = 0; c < _cols; ++c) {
-				if (_grid->coords[r][c].belief >= 0.9) {
-					foundTargets++;
-					bool correct = _grid->coords[r][c].realTarget;
-					std::cout << "Found target at (" << r + 1 << "," << c + 1 << ") - "
-						<< (correct ? "CORRECT" : "FALSE POSITIVE") << std::endl;
-				}
-			}
+		int found = 0;
+		for (auto& d : _detections) {
+			bool correct = _grid->coords[d.row][d.col].realTarget;
+			std::cout << "  (" << d.row + 1 << "," << d.col + 1 << ") "
+				<< (correct ? "CORRECT" : "FALSE POSITIVE")
+				<< " - impulses: " << d.impulsesAtDetection << "\n";
+			if (correct) found++;
 		}
-		std::cout << "Total found: " << foundTargets << " of " << _grid->getTargetCount() << std::endl;
+		std::cout << "Total found: " << found << " of " << _grid->getTargetCount() << std::endl;
 
 		return;
 	}

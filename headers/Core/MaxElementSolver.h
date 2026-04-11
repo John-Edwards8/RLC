@@ -38,6 +38,7 @@ namespace Core {
 		// Heatmap visualization support
 		double getDetectProb(int r, int c) const { return _detectProb[r][c]; }
 		double getGain(int r, int c)			 { return calculateGain(r, c); }
-		double getBelief(int r, int c)			 { return _belief[r][c]; }
+		double getBelief(int r, int c) override  { return _belief[r][c]; }
+		int getTotalImpulses() const override	 { return _totalImpulses; }
 	};
 }
