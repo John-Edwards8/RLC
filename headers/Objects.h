@@ -31,6 +31,7 @@ namespace Objects {
 		Grid(int row, int col);
 		~Grid();
 
+		void toggleTarget(int r, int c);
 		double measure(int row, int col);
 		unsigned getTargetCount() const { return targetCount; }
 

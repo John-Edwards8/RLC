@@ -53,27 +53,34 @@ int main( int argc, char* args[] ) {
 	SDL_Event e;
 
 	while (!quit) {
-		if (!paused && !mainMan->finished()) {
-			mainMan->step();
-			SDL_Delay(50);
-		}
-
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_EVENT_QUIT) {
-				quit = true;
+				exit(1);
+			}
+			else if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+				// LEFT click
+				if (e.button.button == SDL_BUTTON_LEFT)
+					mainMan->handleClick(
+						static_cast<int>(e.button.x),
+						static_cast<int>(e.button.y)
+					);
 			}
 			else if (e.type == SDL_EVENT_KEY_DOWN) {
 				switch (e.key.scancode) {
 				case SDL_SCANCODE_SPACE:
-					paused = paused ? false : true;
+					if (!mainMan->finished())
+						mainMan->startSimulation();
 					break;
 				case SDL_SCANCODE_ESCAPE:
 					exit(1);
 				}
-			}			
+			}
 		}
 
-		if (mainMan->finished()) paused = paused ? false : true;
+		if (!mainMan->finished()) {
+			mainMan->step();
+			SDL_Delay(50);
+		}
 	}
 
 	return 0;

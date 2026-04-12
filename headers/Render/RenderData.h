@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 
+enum class AppState { SETUP, RUNNING, FINISHED };
+
 namespace Render {
 	struct CellRenderInfo {
 		float x, y;
@@ -17,12 +19,13 @@ namespace Render {
 	struct SceneData {
 		std::vector<CellRenderInfo> cells;
 		BeamRenderInfo beam;
-		bool beamActive = false;
 
 		int rows = 0;
 		int cols = 0;
 		int cellSize = 0;
 		int borderX = 0;
 		int borderY = 0;
+
+		AppState state = AppState::SETUP;
 	};
 }

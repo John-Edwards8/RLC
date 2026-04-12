@@ -19,13 +19,16 @@ class Manager {
 	Render::SceneData _sceneData;
 	Core::SolverType _solverType;
 
-	int _screenWidth, _screenHeight;
-	int _rows, _cols;
-	int _cellSize;
-	int _borderX, _borderY;
+	int _screenWidth, _screenHeight,
+		_rows, _cols, _cellSize,
+		_borderX, _borderY, _impulseLimit;
+
+	AppState _state = AppState::SETUP;
 
 	std::vector<DetectionEvent> _detections;
 	std::vector<bool> _alreadyDetected;
+
+	void initSolver();
 public:
 	Manager(int impulse, int frequency,
 			int w = 800, int h = 600, int r = 5, int c = 5,
@@ -35,8 +38,10 @@ public:
 	void updateScene();
 	void step();
 	void render();
+	void handleClick(int mouseX, int mouseY);
+	void startSimulation();
 
 	bool finished() const {
-		return _solver->finished();
+		return _state == AppState::FINISHED;
 	}
 };

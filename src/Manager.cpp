@@ -1,26 +1,31 @@
 #include "../headers/Manager.h"
 
+void Manager::initSolver() {
+	std::fill(_alreadyDetected.begin(), _alreadyDetected.end(), false);
+	_detections.clear();
+
+	switch (_solverType) {
+	case Core::SolverType::SEQUENTIAL:
+		_solver = std::make_unique<Core::SequentialSolver>(
+			_rows, _cols, _impulseLimit, _grid->model);
+		break;
+	case Core::SolverType::MAX_ELEMENT:
+		_solver = std::make_unique<Core::MaxElementSolver>(
+			_rows, _cols, _impulseLimit,
+			_grid->model.singlePulseDetectProb,
+			_grid->model);
+		break;
+	}
+}
+
 Manager::Manager(int impulse, int frequency,
 				 int w, int h, int r, int c,
 				 Core::SolverType type) :
-	_rows(r), _cols(c), _solverType(type),
+	_rows(r), _cols(c), _solverType(type), _impulseLimit(impulse),
 	_display(std::make_unique<Render::Display>(w, h)),
 	_grid(std::make_unique<Objects::Grid>(r, c)),
 	_alreadyDetected(r* c, false)
 {
-	switch (type) {
-	case Core::SolverType::SEQUENTIAL:
-		_solver = std::make_unique<Core::SequentialSolver>(r, c, impulse, _grid->model);
-		break;
-	case Core::SolverType::MAX_ELEMENT:
-		_solver = std::make_unique<Core::MaxElementSolver>(
-			r, c, impulse,
-			_grid->model.singlePulseDetectProb,
-			_grid->model
-		);
-		break;
-	}
-
 	int maxDim = std::max(r, c);
 	_cellSize = (h * 9 / 10) / maxDim;
 	_borderX = (w - _cellSize * c) / 2;
@@ -34,10 +39,9 @@ Manager::Manager(int impulse, int frequency,
 	_sceneData.beam.radius = _cellSize / 4.0f;
 	_sceneData.beam.x = _borderX + _cellSize / 2.0f;
 	_sceneData.beam.y = _borderY + _cellSize / 2.0f;
-	_sceneData.beamActive = false;
+	_sceneData.state = AppState::SETUP;
 
 	updateScene();
-
 	render();	
 }
 
@@ -54,14 +58,16 @@ void Manager::updateScene() {
 			cellInfo.y = static_cast<float>(_borderY + row * _cellSize);
 			cellInfo.size = static_cast<float>(_cellSize);
 			cellInfo.isTarget = gridCell.realTarget;
-			cellInfo.confidence = _solver->getBelief(row,col);
+			cellInfo.confidence = (_solver != nullptr)
+				? _solver->getBelief(row, col)
+				: 0.0;
 			_sceneData.cells.push_back(cellInfo);
 		}
 	}
 }
 
 void Manager::step() {
-	_sceneData.beamActive = true;
+	if (_state != AppState::RUNNING) return;
 	auto [row, col] = _solver->chooseCell();
 	auto& cell = _grid->coords[row][col];
 
@@ -93,7 +99,8 @@ void Manager::step() {
 	render();
 
 	if (_solver->finished()) {
-		_sceneData.beamActive = false;
+		_state = AppState::FINISHED;
+		_sceneData.state = AppState::FINISHED;
 		std::cout << "\n=== SEARCH COMPLETE ===" << std::endl;
 
 		int found = 0;
@@ -114,6 +121,33 @@ void Manager::render() {
 	_display->getRenderer()->clear();
 	_display->getRenderer()->render(_sceneData);
 	_display->getRenderer()->present();
+}
+
+void Manager::handleClick(int mouseX, int mouseY) {
+	if (_state != AppState::SETUP) return;
+
+	int col = (mouseX - _borderX) / _cellSize;
+	int row = (mouseY - _borderY) / _cellSize;
+
+	if (row < 0 || row >= _rows || col < 0 || col >= _cols) return;
+
+	_grid->toggleTarget(row, col);
+	updateScene();
+	render();
+}
+
+void Manager::startSimulation() {
+	if (_state != AppState::SETUP) return;
+	if (_grid->getTargetCount() == 0) {
+		std::cout << "Place at least one target before starting!\n";
+		return;
+	}
+
+	initSolver();
+	_state = AppState::RUNNING;
+	_sceneData.state = AppState::RUNNING;
+	std::cout << "Simulation started. Targets: "
+		<< _grid->getTargetCount() << "\n";
 }
 
 /*

@@ -13,7 +13,7 @@ namespace Render {
 			"RLC",
 			width,
 			height,
-			SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALWAYS_ON_TOP
+			SDL_WINDOW_RESIZABLE
 		);
 
 		if (!_window) {
@@ -70,6 +70,21 @@ namespace Render {
 			SDL_RenderRect(_rend, &rect);
 		}
 
+		// Users Targets (yellow squares)
+		if (scene.state == AppState::SETUP) {
+			SDL_SetRenderDrawColor(_rend, 0xFF, 0xCC, 0x00, 0xFF);
+			for (const auto& cell : scene.cells) {
+				if (cell.isTarget) {
+					SDL_FRect rect = {
+						cell.x + 4, cell.y + 4,
+						cell.size - 8, cell.size - 8
+					};
+					SDL_RenderFillRect(_rend, &rect);
+				}
+			}
+			return;
+		}
+
 		// Targets (red squares)
 		SDL_SetRenderDrawColor(_rend, 0xFF, 0x00, 0x00, 0xFF);
 		for (const auto& cell : scene.cells) {
@@ -85,7 +100,7 @@ namespace Render {
 		}
 
 		// Beam (blue circle)
-		if (scene.beamActive) {
+		if (scene.state == AppState::RUNNING || scene.state == AppState::FINISHED) {
 			SDL_SetRenderDrawColor(_rend, 0x00, 0x00, 0xFF, 0xFF);
 
 			int centerX = static_cast<int>(scene.beam.x);

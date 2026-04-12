@@ -3,29 +3,31 @@
 namespace Objects {
 	Grid::Grid() : Grid(5, 5) {}
 
-	Grid::Grid(int row, int col) : cellsInRow(row), cellsInColumn(col),
-								   _gen(std::random_device{}())
-	{
-		std::bernoulli_distribution dist(0.1);
+	Grid::Grid(int row, int col) : cellsInRow(row), cellsInColumn(col) {
+		std::random_device rd;
+		_gen = std::mt19937(rd());
 
-		coords.resize(cellsInRow);
-		for (auto& row : coords) {
-			row.resize(cellsInColumn);
-		}
-		
-		for (int i = 0; i < cellsInRow; i++) {
-			for (int j = 0; j < cellsInColumn; j++) {
-				coords[i][j].realTarget = dist(_gen);
-				if (coords[i][j].realTarget) {
-					targetCount++;
-					std::cout << "Target is realy in (" << i + 1 << "," <<j + 1 << ")." << std::endl;
-				}
+		coords.resize(row);
+		for (auto& r : coords)
+			r.resize(col);
+
+		// цели не расставляем — ждём пользователя
+		for (int i = 0; i < row; i++)
+			for (int j = 0; j < col; j++) {
+				coords[i][j].realTarget = false;
+				coords[i][j].impulsesSent = 0;
+				coords[i][j].detectProb = 0.0;
 			}
-		}
 	}
 
 	Grid::~Grid() {
 		coords.clear();
+	}
+
+	void Grid::toggleTarget(int r, int c) {
+		bool& t = coords[r][c].realTarget;
+		t = !t;
+		targetCount += t ? 1 : -1;
 	}
 
 	double Grid::measure(int r, int c) {
