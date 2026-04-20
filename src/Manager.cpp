@@ -18,6 +18,22 @@ void Manager::initSolver() {
 	}
 }
 
+void Manager::writeCSV() {
+	const std::string algo = (_solverType == Core::SolverType::SEQUENTIAL)
+		? "SEQUENTIAL" : "MAX_ELEMENT";
+
+	std::ofstream f("results.csv");
+	f << "algo,row,col,impulses_at_detection,t_detect_sec,is_correct\n";
+	for (auto& d : _detections) {
+		f << algo << ","
+			<< d.row + 1 << ","
+			<< d.col + 1 << ","
+			<< d.impulsesAtDetection << ","
+			<< static_cast<double>(d.impulsesAtDetection) / _freq << ","
+			<< (d.isCorrect ? 1 : 0) << "\n";
+	}
+}
+
 Manager::Manager(int impulse, int frequency,
 				 int w, int h, int r, int c,
 				 Core::SolverType type) :
@@ -129,6 +145,8 @@ void Manager::step() {
 				<< " max=" << tMax
 				<< " (freq=" << _freq << " Hz)\n";
 		}
+		writeCSV();
+		std::cout << "Results saved to results.csv\n";
 		return;
 	}
 }
@@ -165,29 +183,3 @@ void Manager::startSimulation() {
 	std::cout << "Simulation started. Targets: "
 		<< _grid->getTargetCount() << "\n";
 }
-
-/*
-* TODO: Move logging to a separate class and make it more structured (e.g. JSON or CSV) for easier analysis.
-void Manager::log(int cI, int cJ, int imp, int freq, int impCnt, int dImpCnt){
-	auto c = (*(coords + cJ) + cI);
-	ofstream file("logs.txt", ios::app);
-	if(first && !logging) {
-		time_t tt;
-	    struct tm* ti;
-	    time(&tt);
-	    ti = localtime(&tt);
-	  
-		file << endl << asctime(ti) << endl;
-		logging = true;
-	}
-	if(!first) { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << (!c->target? impCnt : dImpCnt) << " імпульсів." << endl; }
-	else { file << "У клітинку (" << cI+1 << "," << cJ+1 << ") направлено " << impCnt << " імпульсів." << endl; }
-
-	if (c->target) { file << "Отримано позитивну відповідь." << endl; }
-
-	if(c->targetChecker >= 0.9 && c->isFound == false) {
-		file << "У строці " << cI+1 << "," << " та колонці " << cJ+1 << ", знайдено ціль за " << (double)imp/freq << " секунд." << endl;
-	}
-	file.close();
-}
-*/

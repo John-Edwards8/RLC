@@ -6,6 +6,7 @@
 #include "Core/SequentialSolver.h"
 #include <memory>
 #include <limits>
+#include <fstream>
 
 struct DetectionEvent {
 	int row, col;
@@ -30,6 +31,7 @@ class Manager {
 	std::vector<bool> _alreadyDetected;
 
 	void initSolver();
+	void writeCSV();
 public:
 	Manager(int impulse, int frequency,
 			int w = 800, int h = 600, int r = 5, int c = 5,
