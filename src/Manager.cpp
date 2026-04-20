@@ -21,7 +21,7 @@ void Manager::initSolver() {
 Manager::Manager(int impulse, int frequency,
 				 int w, int h, int r, int c,
 				 Core::SolverType type) :
-	_rows(r), _cols(c), _solverType(type), _impulseLimit(impulse),
+	_rows(r), _cols(c), _solverType(type), _impulseLimit(impulse), _freq(frequency),
 	_display(std::make_unique<Render::Display>(w, h)),
 	_grid(std::make_unique<Objects::Grid>(r, c)),
 	_alreadyDetected(r* c, false)
@@ -113,6 +113,22 @@ void Manager::step() {
 		}
 		std::cout << "Total found: " << found << " of " << _grid->getTargetCount() << std::endl;
 
+		if (!_detections.empty()) {
+			double tMin = std::numeric_limits<double>::max();
+			double tMax = 0.0;
+			double tSum = 0.0;
+			for (auto& d : _detections) {
+				double t = static_cast<double>(d.impulsesAtDetection) / _freq;
+				tMin = std::min(tMin, t);
+				tMax = std::max(tMax, t);
+				tSum += t;
+			}
+			double tAvg = tSum / _detections.size();
+			std::cout << "T_detect (sec): min=" << tMin
+				<< " avg=" << tAvg
+				<< " max=" << tMax
+				<< " (freq=" << _freq << " Hz)\n";
+		}
 		return;
 	}
 }

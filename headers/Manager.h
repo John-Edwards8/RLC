@@ -5,6 +5,7 @@
 #include "Core/MaxElementSolver.h"
 #include "Core/SequentialSolver.h"
 #include <memory>
+#include <limits>
 
 struct DetectionEvent {
 	int row, col;
@@ -21,7 +22,7 @@ class Manager {
 
 	int _screenWidth, _screenHeight,
 		_rows, _cols, _cellSize,
-		_borderX, _borderY, _impulseLimit;
+		_borderX, _borderY, _impulseLimit, _freq;
 
 	AppState _state = AppState::SETUP;
 
