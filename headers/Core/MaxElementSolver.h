@@ -26,7 +26,7 @@ namespace Core {
 		{
 			_n.assign(rows, std::vector<int>(cols, 0));
 			_detectProb.assign(rows, std::vector<double>(cols, 0.0));
-			_belief.assign(rows, std::vector<double>(cols, 0.1));
+			_belief.assign(rows, std::vector<double>(cols, 1.0 / (rows * cols)));
 		}
 
 		std::pair<int, int> chooseCell() override;
