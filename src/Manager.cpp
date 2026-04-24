@@ -17,6 +17,10 @@ void Manager::initSolver() {
 		_solver = std::make_unique<Core::TwoFunctionsSolver>(
 			_rows, _cols, _impulseLimit, _grid->model);
 		break;
+	case Core::SolverType::WEIGHTED_COEFFICIENTS:
+		_solver = std::make_unique<Core::WeightedCoefficientsSolver>(
+			_rows, _cols, _impulseLimit, _grid->model);
+		break;
 	}
 }
 
@@ -100,12 +104,15 @@ void Manager::step() {
 
 	double signal = _grid->measure(row, col);
 	_solver->onSignalResult(row, col, signal);
+
+	int idx = row * _cols + col;
+	double belief = _solver->getBelief(row, col);
 	
 	if (_solver->getRecentPositives(row, col) >= 2
-		&& _solver->getBelief(row, col) >= 0.7
-		&& !_alreadyDetected[row * _cols + col])
+		&& belief >= 0.7
+		&& !_alreadyDetected[idx])
 	{
-		_alreadyDetected[row * _cols + col] = true;
+		_alreadyDetected[idx] = true;
 		_detections.push_back({ row, col, _solver->getTotalImpulses(), _grid->coords[row][col].realTarget });
 		_solver->markDecided(row, col);
 		std::cout << "TARGET DETECTED at (" << row + 1 << "," << col + 1

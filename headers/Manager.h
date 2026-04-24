@@ -5,6 +5,7 @@
 #include "Core/MaxElementSolver.h"
 #include "Core/SequentialSolver.h"
 #include "Core/TwoFunctionsSolver.h"
+#include "Core/WeightedCoefficientsSolver.h"
 #include <memory>
 #include <limits>
 #include <fstream>
@@ -37,7 +38,7 @@ class Manager {
 public:
 	Manager(int impulse, int frequency,
 			int w = 800, int h = 600, int r = 5, int c = 5,
-		    Core::SolverType type = Core::SolverType::TWO_FUNCTIONS);
+		    Core::SolverType type = Core::SolverType::WEIGHTED_COEFFICIENTS);
 	~Manager() = default;
 
 	void updateScene();
