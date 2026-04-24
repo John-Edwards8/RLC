@@ -30,7 +30,10 @@ file(GLOB_RECURSE APP_SOURCES
 
 add_executable(RLC
     ${APP_SOURCES}
+    src/sqlite3.c
 )
+
+target_compile_definitions(RLC PRIVATE SQLITE_THREADSAFE=0)
 
 target_include_directories(RLC
     PRIVATE headers
