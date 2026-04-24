@@ -21,8 +21,7 @@ class Manager {
 	Render::SceneData _sceneData;
 	Core::SolverType _solverType;
 
-	int _screenWidth, _screenHeight,
-		_rows, _cols, _cellSize,
+	int _rows, _cols, _cellSize,
 		_borderX, _borderY, _impulseLimit, _freq;
 
 	AppState _state = AppState::SETUP;

@@ -7,51 +7,24 @@
 
 namespace Core {
 	class MaxElementSolver : public ISolver {
-		int _rows, _cols;
-		std::vector<std::vector<int>> _n; // n[r][c]
-		std::vector<std::vector<double>> _detectProb; // P_i(n)
-		std::vector<std::vector<double>> _belief; // P(цель | сигналы)
-		std::vector<std::vector<std::array<int, 3>>> _lastBinary;
-		std::vector<std::vector<bool>>   _decided;
-
-		Objects::SensorModel _model;
-		
 		double _p; // p
-		int _totalImpulses = 0;
-		int _maxImpulses = 1000;
 	public:
 		MaxElementSolver(int rows, int cols,
-			int maxImpulses = 1000,
+			int maxImpulses = 10000,
 			double singlePulseProb = 0.5,
 			Objects::SensorModel model = {})
-			: _rows(rows), _cols(cols),
-			_maxImpulses(maxImpulses), _p(singlePulseProb), _model(model)
+			: ISolver(rows, cols, maxImpulses, model), _p(singlePulseProb)
 		{
-			_n.assign(rows, std::vector<int>(cols, 0));
-			_detectProb.assign(rows, std::vector<double>(cols, 0.0));
-			_belief.assign(rows, std::vector<double>(cols, 1.0 / (rows * cols)));
-			_lastBinary.assign(rows, std::vector<std::array<int, 3>>(cols, { 0, 0, 0 }));
-			_decided.assign(rows, std::vector<bool>(cols, false));
+			//_detectProb.assign(rows, std::vector<double>(cols, 0.0));
 		}
 
 		std::pair<int, int> chooseCell() override;
 		void onSignalResult(int row, int col, double signal) override;
 		bool finished() const override;
-		int getRecentPositives(int r, int c) const override {
-			int measurements = std::min(_n[r][c], 3);
-			int count = 0;
-			for (int i = 0; i < measurements; i++)
-				count += _lastBinary[r][c][i];
-			return count;
-		}
+		
 		double calculateGain(int r, int c) const;
-		void markDecided(int r, int c) override {
-			_decided[r][c] = true;
-		}
-		// Heatmap visualization support
-		double getDetectProb(int r, int c) const { return _detectProb[r][c]; }
-		double getGain(int r, int c)			 { return calculateGain(r, c); }
-		double getBelief(int r, int c) override  { return _belief[r][c]; }
-		int getTotalImpulses() const override	 { return _totalImpulses; }
+
+		// Heatmap visualization support ?
+		//double getDetectProb(int r, int c) const { return _detectProb[r][c]; }		
 	};
 }

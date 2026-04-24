@@ -25,18 +25,13 @@ namespace Core {
         _lastBinary[row][col][(_n[row][col] - 1) % 3] = (signal > 0.5) ? 1 : 0;
 
         // Обновить P(n) = 1 - (1-p)^n
-        _detectProb[row][col] = 1.0 - std::pow(1.0 - _p, _n[row][col]);
+        //_detectProb[row][col] = 1.0 - std::pow(1.0 - _p, _n[row][col]);
 
-        double b = _belief[row][col];
-        double lt = gauss(signal, _model.muTarget, _model.sigmaTarget);
-        double ln = gauss(signal, _model.muNoise, _model.sigmaNoise);
-        double ev = lt * b + ln * (1.0 - b);
-
-        if (ev > 1e-12) _belief[row][col] = (lt * b) / ev;
+        bayesUpdate(row, col, signal);
 
         std::cout << "Cell (" << row + 1 << "," << col + 1
             << ") n=" << _n[row][col]
-            << " P=" << _detectProb[row][col]
+            //<< " P=" << _detectProb[row][col]
             << " belief=" << _belief[row][col]
             << " gain=" << calculateGain(row, col) << std::endl;
 
@@ -58,7 +53,6 @@ namespace Core {
 	double MaxElementSolver::calculateGain(int r, int c) const {
         constexpr int MIN_MEASUREMENTS = 3;
         if (_decided[r][c])  return 0.0;
-        if (_belief[r][c] >= 0.7)                                 return 0.0;        
         if (_n[r][c] >= MIN_MEASUREMENTS && _belief[r][c] < 0.01) return 0.0;
 
         // Δ = Q^(n) * p = (1-p)^n * p

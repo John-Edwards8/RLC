@@ -83,24 +83,15 @@ void Manager::updateScene() {
 }
 
 void Manager::step() {
-	if (_state != AppState::RUNNING) return;
+	if (_state != AppState::RUNNING || !_solver) return;
 	auto [row, col] = _solver->chooseCell();
 	auto& cell = _grid->coords[row][col];
-
-	if (_solver->getBelief(row, col) >= 0.9 && _solver->getRecentPositives(row, col) >= 2) {
-		_solver->onSignalResult(row, col, 0.0);
-		std::cout << "Already confident about cell (" << row + 1 << "," << col + 1 << "), skipping measurement." << std::endl;
-		return;
-	}
 
 	_sceneData.beam.x = _borderX + col * _cellSize + _cellSize / 2.0f;
 	_sceneData.beam.y = _borderY + row * _cellSize + _cellSize / 2.0f;
 
 	double signal = _grid->measure(row, col);
 	_solver->onSignalResult(row, col, signal);
-
-	cell.impulsesSent++;
-	cell.detectProb = _grid->computeDetectionProb(cell.impulsesSent);
 	
 	if (_solver->getRecentPositives(row, col) >= 2
 		&& _solver->getBelief(row, col) >= 0.7

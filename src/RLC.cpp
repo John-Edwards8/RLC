@@ -1,7 +1,7 @@
 #include "../headers/Manager.h"
 
 int main( int argc, char* args[] ) {
-	int w, h, r, c, frequency = 100, impulse = 10000;
+	int /*w, h,*/ r, c, frequency = 100, impulse = 10000;
 	/*
 	do{
 		a = false;
@@ -48,14 +48,14 @@ int main( int argc, char* args[] ) {
 	std::unique_ptr<Manager> mainMan = std::make_unique<Manager>(impulse, frequency, 1280, 720, 5, 5);
 
 	bool quit = false;
-	bool paused = true;
 
 	SDL_Event e;
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_EVENT_QUIT) {
-				exit(1);
+				quit = true;
+				break;
 			}
 			else if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
 				// LEFT click
@@ -72,7 +72,8 @@ int main( int argc, char* args[] ) {
 						mainMan->startSimulation();
 					break;
 				case SDL_SCANCODE_ESCAPE:
-					exit(1);
+					quit = true;
+					break;
 				}
 			}
 		}

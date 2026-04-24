@@ -3,7 +3,7 @@
 namespace Objects {
 	Grid::Grid() : Grid(5, 5) {}
 
-	Grid::Grid(int row, int col) : cellsInRow(row), cellsInColumn(col) {
+	Grid::Grid(int row, int col) {
 		std::random_device rd;
 		_gen = std::mt19937(rd());
 
@@ -15,13 +15,7 @@ namespace Objects {
 		for (int i = 0; i < row; i++)
 			for (int j = 0; j < col; j++) {
 				coords[i][j].realTarget = false;
-				coords[i][j].impulsesSent = 0;
-				coords[i][j].detectProb = 0.0;
 			}
-	}
-
-	Grid::~Grid() {
-		coords.clear();
 	}
 
 	void Grid::toggleTarget(int r, int c) {
@@ -39,11 +33,5 @@ namespace Objects {
 			std::normal_distribution<> dist(model.muNoise, model.sigmaNoise);
 			return std::max(0.0, std::min(1.0, dist(_gen)));
 		}
-	}
-
-	[[deprecated("The grid is set once. Changing the grid = recreating the object.")]]
-	void Grid::setValues(unsigned scrW, unsigned scrH, unsigned cellsInRow, unsigned cellsInColumn) {
-		cellsInRow = cellsInRow;
-		cellsInColumn = cellsInColumn;
 	}
 }

@@ -5,8 +5,7 @@ enum class AppState { SETUP, RUNNING, FINISHED };
 
 namespace Render {
 	struct CellRenderInfo {
-		float x, y;
-		int size;
+		float x, y, size;
 		double confidence;
 		bool isTarget;
 	};
