@@ -2,21 +2,16 @@
 
 namespace Core {
 	std::pair<int, int> SequentialSolver::chooseCell() {
-		int startR = _curRow, startC = _curCol;
+		for (int attempt = 0; attempt < _rows * _cols; attempt++) {
+			int r = _curRow, c = _curCol;
 
-		for (int attempt = 0; attempt <	_rows * _cols; attempt++) {
-			if (!_decided[_curRow][_curCol]) return { _curRow, _curCol };
-
-			_curCol++;
-			if (_curCol >= _cols) {
+			if (++_curCol >= _cols) {
 				_curCol = 0;
-				_curRow++;
-				if (_curRow >= _rows) _curRow = 0;
+				if (++_curRow >= _rows) _curRow = 0;
 			}
 
-			if (_curRow == startR && _curCol == startC) break;
+			if (!_decided[r][c]) return { r, c };
 		}
-
 		return { _curRow, _curCol };
 	}
 
