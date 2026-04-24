@@ -11,9 +11,7 @@ void Manager::initSolver() {
 		break;
 	case Core::SolverType::MAX_ELEMENT:
 		_solver = std::make_unique<Core::MaxElementSolver>(
-			_rows, _cols, _impulseLimit,
-			_grid->model.singlePulseDetectProb,
-			_grid->model);
+			_rows, _cols, _impulseLimit, _grid->model);
 		break;
 	}
 }

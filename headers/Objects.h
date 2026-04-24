@@ -9,8 +9,6 @@ namespace Objects {
 
 		double muNoise     = 0.35;
 		double sigmaNoise  = 0.25;
-
-		double singlePulseDetectProb = 0.3; // вероятность обнаружения за 1 импульс
 	};
 
 	struct Cell {
@@ -30,9 +28,5 @@ namespace Objects {
 		void toggleTarget(int r, int c);
 		double measure(int row, int col);
 		unsigned getTargetCount() const { return targetCount; }
-
-		inline double computeDetectionProb(int n) const {
-			return 1.0 - std::pow(1.0 - model.singlePulseDetectProb, n);
-		}
 	};
 }

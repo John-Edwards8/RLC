@@ -22,7 +22,7 @@ namespace Core {
 	void MaxElementSolver::onSignalResult(int row, int col, double signal) {
         _n[row][col]++;
         _totalImpulses++;
-        _lastBinary[row][col][(_n[row][col] - 1) % 3] = (signal > 0.5) ? 1 : 0;
+        _lastBinary[row][col][(_n[row][col] - 1) % 3] = (signal > optimalThreshold()) ? 1 : 0;
 
         // Обновить P(n) = 1 - (1-p)^n
         //_detectProb[row][col] = 1.0 - std::pow(1.0 - _p, _n[row][col]);
@@ -51,11 +51,11 @@ namespace Core {
     }
 
 	double MaxElementSolver::calculateGain(int r, int c) const {
-        constexpr int MIN_MEASUREMENTS = 3;
-        if (_decided[r][c])  return 0.0;
-        if (_n[r][c] >= MIN_MEASUREMENTS && _belief[r][c] < 0.01) return 0.0;
+        if (_decided[r][c]) return 0.0;
+        if (_n[r][c] >= 3 && _belief[r][c] < 0.01) return 0.0;
 
         // Δ = Q^(n) * p = (1-p)^n * p
-        return _belief[r][c] * std::pow(1.0 - _p, _n[r][c]) * _p;
+        double p = effectiveDetectProb();
+        return _belief[r][c] * std::pow(1.0 - p, _n[r][c]) * p;
     }
 }

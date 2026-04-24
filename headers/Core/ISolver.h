@@ -56,6 +56,18 @@ namespace Core {
 			return count;
 		}
 
+		double effectiveDetectProb() const {
+			// P(signal > 0.5 | target) по нормальному распределению
+			// = P(Z > (0.5 - mu) / sigma) = 1 - Φ((0.5 - muTarget) / sigmaTarget)
+			double z = (0.5 - _model.muTarget) / _model.sigmaTarget;
+			return 0.5 * std::erfc(z / std::sqrt(2.0));
+		}
+
+		double optimalThreshold() const {
+			// При равных sigma — среднее между mu
+			return (_model.muTarget + _model.muNoise) / 2.0;
+		}
+
 		static double gauss(double x, double mu, double sig) {
 			static constexpr double SQRT_2PI = 2.5066282746;
 			return (1.0 / (sig * SQRT_2PI)) *

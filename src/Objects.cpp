@@ -27,11 +27,11 @@ namespace Objects {
 	double Grid::measure(int r, int c) {
 		if (coords[r][c].realTarget) {
 			std::normal_distribution<> dist(model.muTarget, model.sigmaTarget);
-			return std::max(0.0, std::min(1.0, dist(_gen)));
+			return dist(_gen);
 		}
 		else {
 			std::normal_distribution<> dist(model.muNoise, model.sigmaNoise);
-			return std::max(0.0, std::min(1.0, dist(_gen)));
+			return dist(_gen);
 		}
 	}
 }

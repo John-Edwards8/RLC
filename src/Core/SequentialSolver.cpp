@@ -23,7 +23,7 @@ namespace Core {
 	void SequentialSolver::onSignalResult(int row, int col, double signal) {
 		_totalImpulses++;
 		_n[row][col]++;
-		_lastBinary[row][col][(_n[row][col] - 1) % 3] = (signal > 0.5) ? 1 : 0;
+		_lastBinary[row][col][(_n[row][col] - 1) % 3] = (signal > optimalThreshold()) ? 1 : 0;
 
 		// Байесовское обновление
 		bayesUpdate(row, col, signal);
