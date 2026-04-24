@@ -5,7 +5,7 @@ namespace Core {
 		int startR = _curRow, startC = _curCol;
 
 		for (int attempt = 0; attempt < _rows * _cols; attempt++) {
-			if (!cellDecided(_curRow, _curCol)) return { _curRow, _curCol };
+			if (!_decided[_curRow][_curCol]) return { _curRow, _curCol };
 
 			_curCol++;
 			if (_curCol >= _cols) {
@@ -23,6 +23,7 @@ namespace Core {
 	void SequentialSolver::onSignalResult(int row, int col, double signal) {
 		_totalSteps++;
 		_n[row][col]++;
+		_lastBinary[row][col][(_n[row][col] - 1) % 3] = (signal > 0.5) ? 1 : 0;
 
 		// Байесовское обновление
 		double b = _belief[row][col];
@@ -35,6 +36,9 @@ namespace Core {
 		std::cout << "Seq Cell (" << row + 1 << "," << col + 1
 			<< ") n=" << _n[row][col]
 			<< " belief=" << _belief[row][col] << "\n";
+
+		if (_n[row][col] >= 3 && _belief[row][col] < 0.01)
+			_decided[row][col] = true;
 	}
 
 	bool SequentialSolver::finished() const {
@@ -42,7 +46,7 @@ namespace Core {
 
 		for (int r = 0; r < _rows; r++)
 			for (int c = 0; c < _cols; c++)
-				if (!cellDecided(r, c)) return false;
+				if (!_decided[r][c]) return false;
 
 		return true;
 	}

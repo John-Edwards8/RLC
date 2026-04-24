@@ -11,11 +11,11 @@ namespace Core {
 	class ISolver {
 	public:
 		virtual std::pair<int, int> chooseCell() = 0;
-
+		virtual void markDecided(int r, int c) = 0;
 		virtual void onSignalResult(int row, int col, double signal) = 0;
 		virtual double getBelief(int r, int c) = 0;
 		virtual int getTotalImpulses() const = 0;
-
+		virtual int getRecentPositives(int r, int c) const = 0;
 		virtual bool finished() const = 0;
 
 		virtual ~ISolver() = default;

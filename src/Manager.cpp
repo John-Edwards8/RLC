@@ -87,7 +87,7 @@ void Manager::step() {
 	auto [row, col] = _solver->chooseCell();
 	auto& cell = _grid->coords[row][col];
 
-	if (_solver->getBelief(row, col) >= 0.9) {
+	if (_solver->getBelief(row, col) >= 0.9 && _solver->getRecentPositives(row, col) >= 2) {
 		_solver->onSignalResult(row, col, 0.0);
 		std::cout << "Already confident about cell (" << row + 1 << "," << col + 1 << "), skipping measurement." << std::endl;
 		return;
@@ -97,21 +97,23 @@ void Manager::step() {
 	_sceneData.beam.y = _borderY + row * _cellSize + _cellSize / 2.0f;
 
 	double signal = _grid->measure(row, col);
-
 	_solver->onSignalResult(row, col, signal);
 
 	cell.impulsesSent++;
 	cell.detectProb = _grid->computeDetectionProb(cell.impulsesSent);
 	
-	if (_solver->getBelief(row, col) >= 0.9 && !_alreadyDetected[row * _cols + col]) {
+	if (_solver->getRecentPositives(row, col) >= 2
+		&& _solver->getBelief(row, col) >= 0.7
+		&& !_alreadyDetected[row * _cols + col])
+	{
 		_alreadyDetected[row * _cols + col] = true;
 		_detections.push_back({ row, col, _solver->getTotalImpulses(), _grid->coords[row][col].realTarget });
+		_solver->markDecided(row, col);
 		std::cout << "TARGET DETECTED at (" << row + 1 << "," << col + 1
 			<< ") after " << _solver->getTotalImpulses() << " impulses\n";
 	}
 
 	updateScene();
-
 	render();
 
 	if (_solver->finished()) {

@@ -88,7 +88,7 @@ namespace Render {
 		// Targets (red squares)
 		SDL_SetRenderDrawColor(_rend, 0xFF, 0x00, 0x00, 0xFF);
 		for (const auto& cell : scene.cells) {
-			if (cell.confidence >= 0.9) {
+			if (cell.confidence >= 0.7) {
 				SDL_FRect rect = {
 					cell.x + 5,
 					cell.y + 5,
