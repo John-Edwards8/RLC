@@ -30,6 +30,7 @@ namespace Core {
 
         for (int r = 0; r < _rows; r++)
             for (int c = 0; c < _cols; c++) {
+                if (_decided[r][c]) continue;
                 double gain = calculateGain(r, c);
                 if (gain > bestGain) {
                     bestGain = gain;
@@ -57,9 +58,10 @@ namespace Core {
         if (_totalImpulses >= _maxImpulses) return true;
 
         for (int r = 0; r < _rows; r++)
-            for (int c = 0; c < _cols; c++)
-                if (_belief[r][c] >= 0.02 && _belief[r][c] < 0.9)
-                    return false;
+            for (int c = 0; c < _cols; c++) {
+                if (_decided[r][c]) continue;
+                if (calculateGain(r, c) != 0.0) return false;
+            }
 
         return true;
     }

@@ -40,6 +40,10 @@ namespace Core {
 			double ln = gauss(signal, _model.muNoise, _model.sigmaNoise);
 			double ev = lt * b + ln * (1.0 - b);
 			if (ev > 1e-12) _belief[row][col] = (lt * b) / ev;
+
+			if (_belief[row][col] >= 0.99 ||
+				(_n[row][col] >= 3 && _belief[row][col] < 0.005))
+				_decided[row][col] = true;
 		}
 	public:
 		virtual std::pair<int, int> chooseCell() = 0;
