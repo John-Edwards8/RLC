@@ -7,6 +7,8 @@
 #include <memory>
 #include <limits>
 #include <fstream>
+#include <chrono>
+#include <ctime>
 
 struct DetectionEvent {
 	int row, col;

@@ -17,10 +17,16 @@ void Manager::initSolver() {
 }
 
 void Manager::writeCSV() {
+	auto now = std::chrono::system_clock::now();
+	std::time_t t = std::chrono::system_clock::to_time_t(now);
+	char buf[20];
+	std::strftime(buf, sizeof(buf), "%Y%m%d_%H%M%S", std::localtime(&t));
+
 	const std::string algo = (_solverType == Core::SolverType::SEQUENTIAL)
 		? "SEQUENTIAL" : "MAX_ELEMENT";
 
-	std::ofstream f("results.csv");
+	std::string filename = std::string(buf) + "_" + algo + ".csv";
+	std::ofstream f(filename);
 	f << "algo,row,col,impulses_at_detection,t_detect_sec,is_correct\n";
 	for (auto& d : _detections) {
 		f << algo << ","
