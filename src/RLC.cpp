@@ -45,7 +45,7 @@ int main( int argc, char* args[] ) {
 	} while(a);
 	TODO: UI via Dear ImGui*/
 
-	std::unique_ptr<Manager> mainMan = std::make_unique<Manager>(impulse, frequency, 1280, 720, 5, 5);
+	std::unique_ptr<Manager> mainMan = std::make_unique<Manager>(impulse, frequency, 1280, 720, 5, 5, Core::SolverType::SEQUENTIAL);
 
 	bool quit = false;
 
