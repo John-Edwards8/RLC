@@ -13,6 +13,10 @@ void Manager::initSolver() {
 		_solver = std::make_unique<Core::MaxElementSolver>(
 			_rows, _cols, _impulseLimit, _grid->model);
 		break;
+	case Core::SolverType::TWO_FUNCTIONS:
+		_solver = std::make_unique<Core::TwoFunctionsSolver>(
+			_rows, _cols, _impulseLimit, _grid->model);
+		break;
 	}
 }
 

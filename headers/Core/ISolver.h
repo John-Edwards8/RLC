@@ -9,7 +9,8 @@
 namespace Core {
 	enum class SolverType {
 		SEQUENTIAL,
-		MAX_ELEMENT
+		MAX_ELEMENT,
+		TWO_FUNCTIONS
 	};
 
 	class ISolver {
