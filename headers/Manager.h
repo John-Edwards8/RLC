@@ -26,7 +26,8 @@ class Manager {
 	Core::SolverType _solverType;
 
 	int _rows, _cols, _cellSize,
-		_borderX, _borderY, _impulseLimit, _freq;
+		_borderX, _borderY, _impulseLimit, _freq,
+		_w, _h;
 
 	AppState _state = AppState::SETUP;
 
@@ -44,7 +45,12 @@ public:
 	void updateScene();
 	void step();
 	void render();
+	void renderScene();
 	void handleClick(int mouseX, int mouseY);
+	void reset(int impulse, int frequency, int r, int c, Core::SolverType type);
+	SDL_Window* getWindow() { return _display->getWindow(); }
+	SDL_Renderer* getSDLRenderer() { return _display->getSDLRenderer(); }
+	bool running() const { return _state == AppState::RUNNING; }
 	void startSimulation();
 
 	bool finished() const {

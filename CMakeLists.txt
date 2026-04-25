@@ -24,6 +24,29 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(SDL3)
 
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.91.9b
+)
+FetchContent_MakeAvailable(imgui)
+
+add_library(imgui_lib STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer3.cpp
+)
+
+target_include_directories(imgui_lib PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+)
+
+target_link_libraries(imgui_lib PUBLIC SDL3::SDL3)
+
 file(GLOB_RECURSE APP_SOURCES
     src/*.cpp
 )
@@ -42,6 +65,7 @@ target_include_directories(RLC
 target_link_libraries(RLC
     PRIVATE
         SDL3::SDL3
+        imgui_lib
 )
 
 if (WIN32)

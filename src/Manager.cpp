@@ -52,15 +52,16 @@ Manager::Manager(int impulse, int frequency,
 	_rows(r), _cols(c), _solverType(type), _impulseLimit(impulse), _freq(frequency),
 	_display(std::make_unique<Render::Display>(w, h)),
 	_grid(std::make_unique<Objects::Grid>(r, c)),
-	_alreadyDetected(r* c, false)
+	_alreadyDetected(r* c, false),
+	_w(w), _h(h)
 {
-	int maxDim = std::max(r, c);
-	_cellSize = (h * 9 / 10) / maxDim;
-	_borderX = (w - _cellSize * c) / 2;
-	_borderY = (h - _cellSize * r) / 2;
+	int maxDim = std::max(_rows, _cols);
+	_cellSize = (_h * 9 / 10) / maxDim;
+	_borderX = (_w - _cellSize * _cols) / 2;
+	_borderY = (_h - _cellSize * _rows) / 2;
 
-	_sceneData.rows = r;
-	_sceneData.cols = c;
+	_sceneData.rows = _rows;
+	_sceneData.cols = _cols;
 	_sceneData.cellSize = _cellSize;
 	_sceneData.borderX = _borderX;
 	_sceneData.borderY = _borderY;
@@ -119,9 +120,6 @@ void Manager::step() {
 			<< ") after " << _solver->getTotalImpulses() << " impulses\n";
 	}
 
-	updateScene();
-	render();
-
 	if (_solver->finished()) {
 		_state = AppState::FINISHED;
 		_sceneData.state = AppState::FINISHED;
@@ -159,6 +157,11 @@ void Manager::step() {
 	}
 }
 
+void Manager::renderScene() {
+	_display->getRenderer()->clear();
+	_display->getRenderer()->render(_sceneData);
+}
+
 void Manager::render() {
 	_display->getRenderer()->clear();
 	_display->getRenderer()->render(_sceneData);
@@ -174,6 +177,37 @@ void Manager::handleClick(int mouseX, int mouseY) {
 	if (row < 0 || row >= _rows || col < 0 || col >= _cols) return;
 
 	_grid->toggleTarget(row, col);
+	updateScene();
+	render();
+}
+
+void Manager::reset(int impulse, int frequency, int r, int c, Core::SolverType type) {
+	_impulseLimit = impulse;
+	_freq = frequency;
+	_solverType = type;
+	_rows = r; _cols = c;
+	_state = AppState::SETUP;
+	_sceneData.state = AppState::SETUP;
+
+	_solver.reset();
+	_detections.clear();
+	_grid = std::make_unique<Objects::Grid>(r, c);
+	_alreadyDetected.assign(r * c, false);
+
+	int maxDim = std::max(r, c);
+	_cellSize = (_h * 9 / 10) / maxDim;
+	_borderX = (_w - _cellSize * c) / 2;
+	_borderY = (_h - _cellSize * r) / 2;
+
+	_sceneData.rows = r;
+	_sceneData.cols = c;
+	_sceneData.cellSize = _cellSize;
+	_sceneData.borderX = _borderX;
+	_sceneData.borderY = _borderY;
+	_sceneData.beam.radius = _cellSize / 4.0f;
+	_sceneData.beam.x = _borderX + _cellSize / 2.0f;
+	_sceneData.beam.y = _borderY + _cellSize / 2.0f;
+
 	updateScene();
 	render();
 }

@@ -23,6 +23,7 @@ namespace Render {
 		void render(const SceneData& scene) override;
 		void present() override;
 		void clear();
+		SDL_Renderer* get() { return _rend; }
 
 		~StandardRenderer();
 	};
@@ -35,6 +36,10 @@ namespace Render {
 		Display(unsigned width, unsigned height);
 
 		Renderer* getRenderer() { return _renderer.get(); }
+		SDL_Window* getWindow() { return _window; }
+		SDL_Renderer* getSDLRenderer() {
+			return static_cast<StandardRenderer*>(_renderer.get())->get();
+		}
 
 		~Display();
 	};	
