@@ -1,6 +1,19 @@
 #include "../headers/Manager.h"
+#include "Batch/BatchRunner.h"
 
 int main( int argc, char* args[] ) {
+	if (argc > 1 && std::string(args[1]) == "--batch") {
+		BatchConfig cfg;
+		cfg.runs = std::stoi(args[2]);
+		cfg.rows = std::stoi(args[3]);
+		cfg.cols = std::stoi(args[4]);
+		cfg.impulses = std::stoi(args[5]);
+		cfg.frequency = std::stoi(args[6]);
+		cfg.targets = {{1,4}, {3,1}, {4,4}};
+		BatchRunner runner(cfg);
+		runner.run();
+		return 0;
+	}
 	int /*w, h,*/ r, c, frequency = 100, impulse = 10000;
 	/*
 	do{
