@@ -3,12 +3,22 @@
 #include <iostream>
 
 namespace Objects {
-	struct SensorModel {
-		double muTarget    = 0.75;
-		double sigmaTarget = 0.15;
+	/*struct SensorModel {
+		double muTarget    = 0.65;
+		double sigmaTarget = 0.25;
 
-		double muNoise     = 0.25;
-		double sigmaNoise  = 0.15;
+		double muNoise     = 0.35;
+		double sigmaNoise  = 0.25;
+	};*/
+
+	struct SensorModel {
+		double muTarget = 5.0;   // Подняли до уровня реального SNR
+		double sigmaTarget = 1.0;
+
+		double muNoise = 0.0;   // Нормируем шум к нулю
+		double sigmaNoise = 1.0;
+
+		double targetPfa = 1e-6;  // Та самая одна миллионная
 	};
 
 	struct Cell {

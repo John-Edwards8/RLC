@@ -23,7 +23,7 @@ namespace Core {
 
         return gainPlus - lossTerm;
     }
-
+    /*
     std::pair<int, int> TwoFunctionsSolver::chooseCell() {
         double bestGain = -std::numeric_limits<double>::max();
         int bestR = 0, bestC = 0;
@@ -44,6 +44,7 @@ namespace Core {
 
     void TwoFunctionsSolver::onSignalResult(int row, int col, double signal) {
         _n[row][col]++;
+        _sweepImpulses++;
         _totalImpulses++;
         _lastBinary[row][col][(_n[row][col] - 1) % 3] = (signal > optimalThreshold()) ? 1 : 0;
         bayesUpdate(row, col, signal);
@@ -53,16 +54,59 @@ namespace Core {
             << " belief=" << _belief[row][col]
             << " gain=" << calculateGain(row, col) << "\n";
     }
+    */
 
-    bool TwoFunctionsSolver::finished() const {
-        if (_totalImpulses >= _maxImpulses) return true;
+    // Метод двух функционалов по Берзину (алг. 2.1).
+    void TwoFunctionsSolver::buildPlan(int budget) {
+        _sweepPlan.clear();
 
+        double p = effectiveDetectProb();
+        double eps = 1.0 - p;
+
+        // A_l^(0) = belief, a_l^(0) = eps^n (формула 2.21')
+        std::vector<std::vector<double>> A(_rows, std::vector<double>(_cols));
+        std::vector<std::vector<double>> a(_rows, std::vector<double>(_cols));
         for (int r = 0; r < _rows; r++)
             for (int c = 0; c < _cols; c++) {
-                if (_decided[r][c]) continue;
-                if (calculateGain(r, c) != 0.0) return false;
+                A[r][c] = /*_decided[r][c] ? 0.0 :*/ _belief[r][c];
+                a[r][c] = std::pow(eps, _n[r][c]);
             }
 
-        return true;
+        for (int t = 0; t < budget; t++) {
+            // 1°: вычислить Δ_kl = A_l * ω_hl - сумма (формула 2.21)
+            // Для одного средства: Δ_l = A_l * p * a_l - loss
+            // F+ компонента для каждой ячейки:
+            double totalLoss = 0.0;
+            for (int r = 0; r < _rows; r++)
+                for (int c = 0; c < _cols; c++)
+                    totalLoss += A[r][c] * a[r][c];
+
+            // 2°: argmax Δ (формула 2.22)
+            int bestR = -1, bestC = -1;
+            double maxD = -std::numeric_limits<double>::max();
+
+            for (int r = 0; r < _rows; r++) {
+                for (int c = 0; c < _cols; c++) {
+                    if (A[r][c] <= 0.0) continue;
+                    // F+: прирост от зондирования (r,c)
+                    // F-: потеря от незондирования остальных
+                    double gainPlus = A[r][c] * (1.0 - eps) * a[r][c];
+                    double lossTerm = (totalLoss - A[r][c] * a[r][c]) * (1.0 - eps);
+                    double delta = gainPlus - lossTerm;
+                    if (delta > maxD) {
+                        maxD = delta;
+                        bestR = r; bestC = c;
+                    }
+                }
+            }
+
+            if (bestR == -1) break;
+            _sweepPlan.push_back({ bestR, bestC });
+
+            // 4°: пересчёт A и a (формула 2.24)
+            // A_l^(t) = A_l^(t-1) * eps для выбранной ячейки
+            A[bestR][bestC] *= eps;
+            a[bestR][bestC] *= eps;
+        }
     }
 }

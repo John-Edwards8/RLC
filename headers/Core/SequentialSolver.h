@@ -8,12 +8,11 @@ namespace Core {
 		int _curRow = 0, _curCol = 0;
 	public:
 		SequentialSolver(int rows, int cols,
-			int maxImpulses = 10000,
 			Objects::SensorModel model = {})
-			: ISolver(rows, cols, maxImpulses, model) {}
+			: ISolver(rows, cols, model) {}
 		
-		std::pair<int, int> chooseCell() override;
-		void onSignalResult(int row, int col, double signal) override;
-		bool finished() const override;
+		//std::pair<int, int> chooseCell() override;
+		//void onSignalResult(int row, int col, double signal) override;
+		void buildPlan(int budget) override;
 	};
 }

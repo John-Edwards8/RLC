@@ -7,15 +7,13 @@ namespace Core {
     class TwoFunctionsSolver : public ISolver {
     public:
         TwoFunctionsSolver(int rows, int cols,
-            int maxImpulses = 10000,
             Objects::SensorModel model = {})
-            : ISolver(rows, cols, maxImpulses, model)
+            : ISolver(rows, cols, model)
         {}
 
-        std::pair<int, int> chooseCell() override;
-        void onSignalResult(int row, int col, double signal) override;
-        bool finished() const override;
-
+        //std::pair<int, int> chooseCell() override;
+        //void onSignalResult(int row, int col, double signal) override;
+        void buildPlan(int budget) override;
     private:
         double calculateGain(int r, int c) const;
     };
