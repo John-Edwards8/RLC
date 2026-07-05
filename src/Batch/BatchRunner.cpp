@@ -216,8 +216,8 @@ void BatchRunner::run() {
 
     std::cout << "=== BATCH START ===\n";
     for (auto algo : algos) {
-        runScenario(algo, 3, 10, 1, 0.006, 10000, "ONE_TARGET", rng);
-        runScenario(algo, 30, 100, 10, 0.6, 10000, "TEN_TARGETS", rng);
+        runScenario(algo, 30, 100, 1, 0.6, 10000, "1_TARGET", rng);
+        runScenario(algo, 30, 100, 20, 0.6, 10000, "20_TARGETS", rng);
     }
     std::cout << "=== BATCH COMPLETE. Results -> results.db ===\n";
 }
