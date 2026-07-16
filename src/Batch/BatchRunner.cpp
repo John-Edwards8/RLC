@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <algorithm>
+#include <thread>
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -48,6 +49,8 @@ BatchRunner::BatchRunner(BatchConfig cfg, const std::string& dbPath)
 }
 
 BatchRunner::~BatchRunner() {
+    if (_insertRunStmt)   sqlite3_finalize(_insertRunStmt);
+    if (_insertEventStmt) sqlite3_finalize(_insertEventStmt);
     if (_db) sqlite3_close(_db);
 }
 
@@ -75,11 +78,112 @@ void BatchRunner::initDB() {
             is_correct INTEGER
         );
     )";
+
     char* err = nullptr;
     if (sqlite3_exec(_db, sql, nullptr, nullptr, &err) != SQLITE_OK) {
         std::string msg = err; sqlite3_free(err);
         throw std::runtime_error("DB init failed: " + msg);
     }
+
+    sqlite3_exec(_db, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
+    sqlite3_exec(_db, "PRAGMA synchronous=NORMAL;", nullptr, nullptr, nullptr);
+    sqlite3_exec(_db, "PRAGMA temp_store=MEMORY;", nullptr, nullptr, nullptr);
+
+    sqlite3_prepare_v2(_db,
+        "INSERT INTO runs"
+        "(algo,scenario,run_index,targets,found,false_pos,"
+        " total_impulses,impulses_to_last_det,impulses_det_avg)"
+        " VALUES(?,?,?,?,?,?,?,?,?)",
+        -1, &_insertRunStmt, nullptr);
+
+    sqlite3_prepare_v2(_db,
+        "INSERT INTO events(run_id,row,col,impulses,t_detect,is_correct)"
+        " VALUES(?,?,?,?,?,?)",
+        -1, &_insertEventStmt, nullptr);
+}
+
+BatchRunner::RunResult BatchRunner::computeOnce(Core::SolverType algo,
+    int runIndex, int rows, int cols, double duration, int frequency,
+    const std::vector<std::pair<int, int>>& targets, const std::string& scenarioTag)
+{
+    Objects::Grid grid(rows, cols);   // свой mt19937 внутри — потокобезопасно
+    for (auto [r, c] : targets)
+        grid.toggleTarget(r, c);
+
+    const int sweepBudget = static_cast<int>(duration * frequency);
+    const std::string algoName = algoString(algo);
+
+    std::unique_ptr<Core::ISolver> solver;
+    switch (algo) {
+    case Core::SolverType::SEQUENTIAL:
+        solver = std::make_unique<Core::SequentialSolver>(rows, cols, grid.model);
+        break;
+    case Core::SolverType::MAX_ELEMENT:
+        solver = std::make_unique<Core::MaxElementSolver>(rows, cols, grid.model);
+        break;
+    case Core::SolverType::TWO_FUNCTIONS:
+        solver = std::make_unique<Core::TwoFunctionsSolver>(rows, cols, grid.model);
+        break;
+    case Core::SolverType::WEIGHTED_COEFFICIENTS:
+        solver = std::make_unique<Core::WeightedCoefficientsSolver>(rows, cols, grid.model);
+        break;
+    }
+
+    struct Event { int row, col; int impulses; bool isCorrect; };
+    std::vector<Event> events;
+    std::vector<bool>  alreadyDetected(rows * cols, false);
+
+    while (!solver->finished()) {
+        auto [row, col] = solver->chooseCell(sweepBudget);
+        double signal = grid.measure(row, col);
+        solver->onSignalResult(row, col, signal);
+
+        int idx = row * cols + col;
+        if (solver->getRecentPositives(row, col) >= 2
+            && solver->getBelief(row, col) >= 0.9
+            && !alreadyDetected[idx])
+        {
+            alreadyDetected[idx] = true;
+            bool correct = grid.coords[row][col].realTarget;
+            events.push_back({ row, col, solver->getTotalImpulses(), correct });
+            solver->markDecided(row, col);
+        }
+    }
+    solver->flushPending();
+
+    int    found = 0;
+    int    falsePos = 0;
+    int    lastDetImp = 0;
+    double impSum = 0.0;
+
+    for (auto& e : events) {
+        if (e.isCorrect) {
+            found++;
+            impSum += e.impulses;
+            lastDetImp = std::max(lastDetImp, e.impulses);
+        }
+        else {
+            falsePos++;
+        }
+    }
+    double impDetAvg = (found > 0) ? impSum / found : 0.0;
+
+    RunResult res;
+    res.algo = algoName;
+    res.scenario = scenarioTag;
+    res.runIndex = runIndex;
+    res.targets = (int)targets.size();
+    res.found = found;
+    res.falsePos = falsePos;
+    res.totalImpulses = solver->getTotalImpulses();
+    res.impulsesToLastDet = lastDetImp;
+    res.impDetAvg = impDetAvg;
+    res.events.reserve(events.size());
+    for (auto& e : events)
+        res.events.push_back({ e.row, e.col, e.impulses,
+            static_cast<double>(e.impulses) / frequency, e.isCorrect });
+
+    return res;
 }
 
 // ---------------------------------------------------------------------------
@@ -185,19 +289,64 @@ void BatchRunner::runScenario(Core::SolverType algo,
     const std::string algoName = algoString(algo);
     std::cout << "  [" << scenarioTag << "] " << algoName
         << " - " << _cfg.runs << " runs, "
-        << rows << "x" << cols << ", " << targetCount << " target(s)\n";
+        << rows << "x" << cols << ", " << targetCount << " target(s)\n" << std::flush;
 
+    std::vector<std::vector<std::pair<int, int>>> targetsPerRun(_cfg.runs);
     auto currentTargets = randomTargets(rows, cols, targetCount, rng);
-
     for (int i = 0; i < _cfg.runs; i++) {
-        if (i > 0 && i % 10 == 0) {
+        if (i > 0 && i % 10 == 0)
             currentTargets = randomTargets(rows, cols, targetCount, rng);
-            std::cout << "    run " << i << ": relocated " << targetCount
-                << " target(s)\n";
-        }
-        runOnce(algo, i, rows, cols, duration, frequency, currentTargets, scenarioTag);
+        targetsPerRun[i] = currentTargets;
     }
-    std::cout << "    done\n";
+
+    unsigned nThreads = std::max(1u, std::thread::hardware_concurrency());
+    std::vector<RunResult> results(_cfg.runs);
+    std::atomic<int> next{ 0 };
+    std::atomic<int> completed{ 0 };
+
+    auto worker = [&]() {
+        int i;
+        while ((i = next.fetch_add(1, std::memory_order_relaxed)) < _cfg.runs) {
+            results[i] = computeOnce(algo, i, rows, cols, duration, frequency,
+                targetsPerRun[i], scenarioTag);
+            int done = completed.fetch_add(1, std::memory_order_relaxed) + 1;
+            if (done % 50 == 0 || done == _cfg.runs) {
+                std::cout << "    progress: " << done << "/" << _cfg.runs << std::endl;
+            }
+        }
+        };
+
+    std::vector<std::thread> pool;
+    pool.reserve(nThreads);
+    for (unsigned t = 0; t < nThreads; t++) pool.emplace_back(worker);
+
+    // Watchdog: если за 15 сек нет прогресса — печатаем предупреждение,
+    // это укажет, завис ли конкретный прогон (бесконечный while(!finished()))
+    int lastSeen = -1;
+    while (completed.load() < _cfg.runs) {
+        std::this_thread::sleep_for(std::chrono::seconds(15));
+        int cur = completed.load();
+        if (cur == lastSeen) {
+            std::cout << "    !! WATCHDOG: no progress for 15s, stuck at "
+                << cur << "/" << _cfg.runs << std::endl;
+        }
+        lastSeen = cur;
+    }
+
+    for (auto& th : pool) th.join();
+
+    sqlite3_exec(_db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
+    for (auto& r : results) persistResult(r);
+    sqlite3_exec(_db, "COMMIT;", nullptr, nullptr, nullptr);
+
+    std::cout << "    done (" << nThreads << " threads)\n";
+}
+
+void BatchRunner::persistResult(const RunResult& r) {
+    int runId = insertRun(r.algo, r.runIndex, r.scenario, r.targets,
+        r.found, r.falsePos, r.totalImpulses, r.impulsesToLastDet, r.impDetAvg);
+    for (auto& e : r.events)
+        insertEvent(runId, e.row, e.col, e.impulses, e.tDetect, e.isCorrect);
 }
 
 // ---------------------------------------------------------------------------
@@ -233,41 +382,31 @@ int BatchRunner::insertRun(const std::string& algo, int runIndex,
     int impulsesToLastDet,
     double impDetAvg)
 {
-    sqlite3_stmt* stmt;
-    sqlite3_prepare_v2(_db,
-        "INSERT INTO runs"
-        "(algo,scenario,run_index,targets,found,false_pos,"
-        " total_impulses,impulses_to_last_det,impulses_det_avg)"
-        " VALUES(?,?,?,?,?,?,?,?,?)",
-        -1, &stmt, nullptr);
-    sqlite3_bind_text(stmt, 1, algo.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 2, scenario.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 3, runIndex);
-    sqlite3_bind_int(stmt, 4, targets);
-    sqlite3_bind_int(stmt, 5, found);
-    sqlite3_bind_int(stmt, 6, falsePos);
-    sqlite3_bind_int(stmt, 7, totalImpulses);
-    sqlite3_bind_int(stmt, 8, impulsesToLastDet);
-    sqlite3_bind_double(stmt, 9, impDetAvg);
-    sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
+    sqlite3_reset(_insertRunStmt);
+    sqlite3_clear_bindings(_insertRunStmt);
+    sqlite3_bind_text(_insertRunStmt, 1, algo.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(_insertRunStmt, 2, scenario.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(_insertRunStmt, 3, runIndex);
+    sqlite3_bind_int(_insertRunStmt, 4, targets);
+    sqlite3_bind_int(_insertRunStmt, 5, found);
+    sqlite3_bind_int(_insertRunStmt, 6, falsePos);
+    sqlite3_bind_int(_insertRunStmt, 7, totalImpulses);
+    sqlite3_bind_int(_insertRunStmt, 8, impulsesToLastDet);
+    sqlite3_bind_double(_insertRunStmt, 9, impDetAvg);
+    sqlite3_step(_insertRunStmt);
     return static_cast<int>(sqlite3_last_insert_rowid(_db));
 }
 
 void BatchRunner::insertEvent(int runId, int row, int col,
     int impulses, double tDetect, bool isCorrect)
 {
-    sqlite3_stmt* stmt;
-    sqlite3_prepare_v2(_db,
-        "INSERT INTO events(run_id,row,col,impulses,t_detect,is_correct)"
-        " VALUES(?,?,?,?,?,?)",
-        -1, &stmt, nullptr);
-    sqlite3_bind_int(stmt, 1, runId);
-    sqlite3_bind_int(stmt, 2, row);
-    sqlite3_bind_int(stmt, 3, col);
-    sqlite3_bind_int(stmt, 4, impulses);
-    sqlite3_bind_double(stmt, 5, tDetect);
-    sqlite3_bind_int(stmt, 6, isCorrect ? 1 : 0);
-    sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
+    sqlite3_reset(_insertEventStmt);
+    sqlite3_clear_bindings(_insertEventStmt);
+    sqlite3_bind_int(_insertEventStmt, 1, runId);
+    sqlite3_bind_int(_insertEventStmt, 2, row);
+    sqlite3_bind_int(_insertEventStmt, 3, col);
+    sqlite3_bind_int(_insertEventStmt, 4, impulses);
+    sqlite3_bind_double(_insertEventStmt, 5, tDetect);
+    sqlite3_bind_int(_insertEventStmt, 6, isCorrect ? 1 : 0);
+    sqlite3_step(_insertEventStmt);
 }
